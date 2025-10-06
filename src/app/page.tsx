@@ -25,20 +25,20 @@ function Header() {
         </div>
         <nav className="hidden md:flex items-center gap-6">
           <a aria-current="page" className="text-primary hover:text-primary transition-colors" href="/">
-            Home
+            Ana Sayfa
           </a>
           <a className="text-foreground hover:text-primary transition-colors" href="/add-review">
-            Add Review
+            Yorum Ekle
           </a>
           <a className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
-            My Reviews
+            Yorumlarım
           </a>
         </nav>
         <div className="hidden md:block">
           <div className="">
             <a href="/auth">
-              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Sign in">
-                Sign in
+              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Giriş Yap">
+                Giriş Yap
               </button>
             </a>
           </div>
@@ -46,12 +46,12 @@ function Header() {
         <div className="md:hidden flex items-center gap-2">
           <div className="">
             <a href="/auth">
-              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Sign in">
-                Sign in
+              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Giriş Yap">
+                Giriş Yap
               </button>
             </a>
           </div>
-          <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="Open menu" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-:r0:" data-state="closed">
+          <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="Menüyü Aç" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-:r0:" data-state="closed">
             <Menu className="h-4 w-4" />
           </button>
         </div>
@@ -69,13 +69,13 @@ function HeroSection() {
         <h1 className="text-6xl font-extrabold text-red-600">Heard!</h1>
       </div>
       <p className="text-md text-gray-500 mb-6">
-        Anonymously review your job experiences
+        İş deneyimlerinizi anonim olarak paylaşın
       </p>
       
       {/* Ana Eylem Butonu */}
       <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6  rounded-xl shadow-lg shadow-red-500/50 transition-all flex items-center space-x-2 mb-12">
         <Plus className="h-5 w-5" />
-        <span>Add a Review</span>
+        <span>Yorum Ekle</span>
       </button>
     </div>
   );
@@ -105,7 +105,7 @@ function SearchBar() {
       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
       <input
         type="text"
-        placeholder="Find a Restaurant"
+        placeholder="Restoran Ara"
         className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
       />
     </div>
@@ -118,12 +118,12 @@ function ViewToggle() {
       {/* Aktif: List View */}
       <button className="bg-red-600 text-white py-2 px-4 flex items-center space-x-2">
         <List className="h-4 w-4" />
-        <span>List View</span>
+        <span>Liste Görünümü</span>
       </button>
       {/* Pasif: Map View */}
       <button className="bg-white text-red-600 py-2 px-4 flex items-center space-x-2 hover:bg-red-50 transition-colors">
         <Map className="h-4 w-4" />
-        <span>Map View</span>
+        <span>Harita Görünümü</span>
       </button>
     </div>
   );
@@ -134,7 +134,7 @@ function ReviewsContainer() {
     <div className="mt-8">
       {/* Başlık ve Filtreleme */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold text-gray-900">Café Reviews</h2>
+        <h2 className="text-3xl font-semibold text-gray-900">Kafe Yorumları</h2>
         <button className="bg-red-600 hover:bg-red-700 text-white p-3 rounded-full transition-colors">
           <ChevronDown className="h-5 w-5" />
         </button>
