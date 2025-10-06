@@ -1,65 +1,13 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Star, Map, List, Filter, Search, Bookmark, Plus, ForkKnife } from "lucide-react";
+import { Star, Map, List, ChevronDown, Search, Bookmark, Plus, ForkKnife, MapPin, Utensils, Menu } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Header />
-
-      <main className="container mx-auto px-4 py-8">
-        <div className="text-center max-w-2xl mx-auto">
-          <h1 className="text-5xl font-serif text-red-600 mb-4">Heard!</h1>
-          <p className="text-xl text-gray-600 mb-6">
-            Çalıştığınız yerlerdeki deneyimlerinizi anonim olarak paylaşın
-          </p>
-          <Button size="lg" className="bg-red-500 hover:bg-red-600 text-white rounded-full px-8 py-3">
-            <Plus className="mr-2 h-5 w-5" /> Yorum Ekle
-          </Button>
-        </div>
-
-        <div className="flex justify-center my-8">
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input type="text" placeholder="Bir restoran bul" className="pl-10 w-full rounded-full" />
-          </div>
-        </div>
-
-        <div className="flex justify-end items-center mb-4">
-          <div className="flex items-center space-x-2">
-            <Button variant="default" className="bg-red-500 text-white rounded-full">
-              <List className="mr-2 h-4 w-4" /> Liste Görünümü
-            </Button>
-            <Button variant="ghost" className="text-gray-600 rounded-full">
-              <Map className="mr-2 h-4 w-4" /> Harita Görünümü
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-serif">Pastane Yorumları</h2>
-          <Button variant="default" className="bg-red-500 text-white rounded-full p-3">
-            <Filter className="h-6 w-6" />
-          </Button>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          <ReviewCard
-            company="The Cheesecake Factory"
-            address="115 Huntington Ave Suite 181, Boston, MA 02199, USA"
-            rating={3}
-            review="Bu mekan berbat. Tam bir lüks Applebees. Yemekler vasat ve pahalı, ama o lanet çizkekler harika. Restoran sürekli..."
-            date="06.01.2023"
-          />
-          <ReviewCard
-            company="Subway"
-            address="1101 4th St SW 4th Street Bldg, Unit 130, Washington, DC 20024, USA"
-            rating={4}
-            review="Bu lokasyonun sahibi (Luke) haftada bir çalışılan vardiya başına 2 öğüne kadar %50 indirim sağlıyor (indirim öncesi) öğün başına 20$'a kadar. Eğitim..."
-            date="10.02.2023"
-          />
-        </div>
+      <main className="max-w-7xl mx-auto px-6">
+        <HeroSection />
+        <Controls />
+        <ReviewsContainer />
       </main>
     </div>
   );
@@ -67,24 +15,149 @@ export default function Home() {
 
 function Header() {
   return (
-    <header className="border-b">
-      <div className="container mx-auto px-4 flex justify-between items-center py-4">
-        <div className="flex items-center space-x-2">
-          <ForkKnife className="text-red-600 h-8 w-8" />
-          <span className="text-2xl font-serif text-red-600">Heard!</span>
+    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto flex h-14 items-center justify-between px-4">
+        <div className="flex items-center gap-2">
+          <a className="flex items-center gap-2" href="/">
+            <Utensils className="h-5 w-5 text-primary" />
+            <span className="font-semibold">Heard!</span>
+          </a>
         </div>
-        <nav className="hidden md:flex items-center space-x-6">
-          <a href="#" className="text-gray-600 hover:text-red-500">Anasayfa</a>
-          <a href="#" className="text-gray-600 hover:text-red-500">Yorum Ekle</a>
-          <a href="#" className="text-gray-600 hover:text-red-500">Yorumlarım</a>
+        <nav className="hidden md:flex items-center gap-6">
+          <a aria-current="page" className="text-primary hover:text-primary transition-colors" href="/">
+            Home
+          </a>
+          <a className="text-foreground hover:text-primary transition-colors" href="/add-review">
+            Add Review
+          </a>
+          <a className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
+            My Reviews
+          </a>
         </nav>
-        <div>
-          <Button className="bg-red-500 hover:bg-red-600 text-white rounded-full px-6">
-            Giriş Yap
-          </Button>
+        <div className="hidden md:block">
+          <div className="">
+            <a href="/auth">
+              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Sign in">
+                Sign in
+              </button>
+            </a>
+          </div>
+        </div>
+        <div className="md:hidden flex items-center gap-2">
+          <div className="">
+            <a href="/auth">
+              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Sign in">
+                Sign in
+              </button>
+            </a>
+          </div>
+          <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="Open menu" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-:r0:" data-state="closed">
+            <Menu className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </header>
+  );
+}
+
+function HeroSection() {
+  return (
+    <div className="flex flex-col items-center py-12">
+      {/* Büyük Logo ve Slogan */}
+      <div className="flex items-center space-x-3 mb-2">
+        <ForkKnife className="text-red-600 h-12 w-12" />
+        <h1 className="text-6xl font-extrabold text-red-600">Heard!</h1>
+      </div>
+      <p className="text-md text-gray-500 mb-6">
+        Anonymously review your job experiences
+      </p>
+      
+      {/* Ana Eylem Butonu */}
+      <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6  rounded-xl shadow-lg shadow-red-500/50 transition-all flex items-center space-x-2 mb-12">
+        <Plus className="h-5 w-5" />
+        <span>Add a Review</span>
+      </button>
+    </div>
+  );
+}
+
+function Controls() {
+  return (
+    <div className="space-y-6 mb-8">
+      {/* Arama Çubuğu - Ortalanmış */}
+      <div className="flex justify-center">
+        <div className="w-full max-w-lg">
+          <SearchBar />
+        </div>
+      </div>
+      
+      {/* Görünüm Seçici - Sağda */}
+      <div className="flex justify-end">
+        <ViewToggle />
+      </div>
+    </div>
+  );
+}
+
+function SearchBar() {
+  return (
+    <div className="relative">
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
+      <input
+        type="text"
+        placeholder="Find a Restaurant"
+        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+      />
+    </div>
+  );
+}
+
+function ViewToggle() {
+  return (
+    <div className="inline-flex border border-red-600 rounded-full overflow-hidden">
+      {/* Aktif: List View */}
+      <button className="bg-red-600 text-white py-2 px-4 flex items-center space-x-2">
+        <List className="h-4 w-4" />
+        <span>List View</span>
+      </button>
+      {/* Pasif: Map View */}
+      <button className="bg-white text-red-600 py-2 px-4 flex items-center space-x-2 hover:bg-red-50 transition-colors">
+        <Map className="h-4 w-4" />
+        <span>Map View</span>
+      </button>
+    </div>
+  );
+}
+
+function ReviewsContainer() {
+  return (
+    <div className="mt-8">
+      {/* Başlık ve Filtreleme */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-semibold text-gray-900">Café Reviews</h2>
+        <button className="bg-red-600 hover:bg-red-700 text-white p-3 rounded-full transition-colors">
+          <ChevronDown className="h-5 w-5" />
+        </button>
+      </div>
+      
+      {/* İnceleme Kartları */}
+      <div className="grid grid-cols-2 gap-6">
+        <ReviewCard
+          company="The Cheesecake Factory"
+          address="115 Huntington Ave Suite 181, Boston, MA 02199, USA"
+          rating={3}
+          review="Bu mekan berbat. Tam bir lüks Applebees. Yemekler vasat ve pahalı, ama o lanet çizkekler harika. Restoran sürekli..."
+          date="06.01.2023"
+        />
+        <ReviewCard
+          company="Subway"
+          address="1101 4th St SW 4th Street Bldg, Unit 130, Washington, DC 20024, USA"
+          rating={4}
+          review="Bu lokasyonun sahibi (Luke) haftada bir çalışılan vardiya başına 2 öğüne kadar %50 indirim sağlıyor (indirim öncesi) öğün başına 20$'a kadar. Eğitim..."
+          date="10.02.2023"
+        />
+      </div>
+    </div>
   );
 }
 
@@ -98,31 +171,39 @@ interface ReviewCardProps {
 
 function ReviewCard({ company, address, rating, review, date }: ReviewCardProps) {
   return (
-    <Card className="rounded-xl shadow-md">
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-xl">{company}</CardTitle>
-            <p className="text-sm text-gray-500 mt-1">{address}</p>
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      {/* Üst Kısım: Restoran Adı ve Puan */}
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 mb-1">
+            <h3 className="text-lg font-bold text-gray-900">{company}</h3>
+            <span className="text-sm text-gray-400">{rating}/5</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="font-bold">{rating}/5</span>
-            <Bookmark className="text-gray-400" />
+          {/* Adres */}
+          <div className="flex items-start space-x-1">
+            <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-gray-500">{address}</p>
           </div>
         </div>
-        <div className="flex items-center mt-2">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className={`h-5 w-5 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-            />
-          ))}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-gray-700 mb-4">{review}</p>
-        <p className="text-sm text-gray-400">{date}</p>
-      </CardContent>
-    </Card>
+        {/* Sağ Üst İkon */}
+        <Bookmark className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" />
+      </div>
+      
+      {/* Yıldızlar */}
+      <div className="flex items-center mb-4">
+        {[...Array(5)].map((_, i) => (
+          <Star
+            key={i}
+            className={`h-5 w-5 ${i < rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300 fill-gray-300'}`}
+          />
+        ))}
+      </div>
+      
+      {/* İnceleme Metni */}
+      <p className="text-gray-900 mb-4 leading-relaxed">{review}</p>
+      
+      {/* Tarih */}
+      <p className="text-xs text-gray-400">{date}</p>
+    </div>
   );
 }
