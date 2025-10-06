@@ -1,4 +1,7 @@
+"use client";
+
 import { Star, Map, List, ChevronDown, Search, Bookmark, Plus, ForkKnife, MapPin, Utensils, Menu } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   return (
@@ -130,11 +133,41 @@ function ViewToggle() {
 }
 
 function ReviewsContainer() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const categories = [
+    "Kafe Yorumları",
+    "Ofis Yorumları",
+    "Restoran Yorumları",
+    "Market Yorumları",
+    "Giyim Mağazası Yorumları"
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % categories.length);
+        setIsAnimating(false);
+      }, 300);
+    }, 2000); // 2 saniyede bir değişir
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="mt-8">
       {/* Başlık ve Filtreleme */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold text-gray-900">Kafe Yorumları</h2>
+        <h2 className="text-3xl font-semibold text-gray-900">
+          <span 
+            className={`inline-block transition-all duration-300 ${
+              isAnimating ? "opacity-0 transform -translate-y-2" : "opacity-100 transform translate-y-0"
+            }`}
+          >
+            {categories[currentIndex]}
+          </span>
+        </h2>
         <button className="bg-red-600 hover:bg-red-700 text-white p-3 rounded-full transition-colors">
           <ChevronDown className="h-5 w-5" />
         </button>
