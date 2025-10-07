@@ -179,7 +179,7 @@ function HeroSection() {
   );
 }
 
-function ReviewsContainer({ showToast }: { showToast: (message: string, type: 'success' | 'error') => void }) {
+function ReviewsContainer({ showToast }: { showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void }) {
   const [comments, setComments] = useState<CommentWithAnnounce[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReview, setSelectedReview] = useState<CommentWithAnnounce | null>(null);
@@ -262,8 +262,18 @@ function ReviewsContainer({ showToast }: { showToast: (message: string, type: 's
 
       {selectedReview && (
         <ReviewDetailModal
-          review={selectedReview}
+          isOpen={!!selectedReview}
           onClose={() => setSelectedReview(null)}
+          company={selectedReview.business_name}
+          address={`${selectedReview.district}, ${selectedReview.city}`}
+          rating={selectedReview.rating}
+          review={selectedReview.experience}
+          date={new Date(selectedReview.created_at).toLocaleDateString('tr-TR')}
+          username={selectedReview.username}
+          commentId={selectedReview.id}
+          announceCount={selectedReview.announceCount}
+          hasAnnounced={selectedReview.hasAnnounced}
+          showToast={showToast}
         />
       )}
     </>
