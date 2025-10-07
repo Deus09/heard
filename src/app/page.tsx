@@ -9,14 +9,29 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       <Header />
-      <main className="max-w-6xl mx-auto px-6">
+      <main className="max-w-6xl mx-auto px-6 flex-grow">
         <HeroSection />
         <Controls searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         <ReviewsContainer searchTerm={searchTerm} />
       </main>
+      <Footer />
     </div>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="mt-12 border-t border-gray-200">
+      <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="flex justify-center">
+          <p className="text-sm text-gray-500">
+            Copyright © {new Date().getFullYear()} Duyur!
+          </p>
+        </div>
+      </div>
+    </footer>
   );
 }
 
