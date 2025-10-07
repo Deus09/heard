@@ -1,14 +1,15 @@
 [build]
+  # Next.js'i derlemek için kullanılan komut.
   command = "npm run build"
-  publish = ".next"
+  
+  # NODE_VERSION'ı burada ayarlamak iyi bir uygulamadır. 
+  # Sizin için 18 veya 20 önerilir.
+  environment = { NODE_VERSION = "18" }
 
+# Bu eklenti (plugin) kritiktir. 
+# Tüm Next.js ayarlarını, yönlendirmeleri ve API işlevlerini yönetir.
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[build.environment]
-  NODE_VERSION = "18"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# publish ve redirects satırları gereksizdir, 
+# çünkü plugin tüm bu işleri sizin yerinize halleder.
