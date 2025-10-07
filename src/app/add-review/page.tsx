@@ -1,19 +1,64 @@
 "use client";
 
-import { Utensils, Menu, Send } from "lucide-react";
+import { Utensils, Menu, Send, Star } from "lucide-react";
 import { useState } from "react";
 
 export default function AddReviewPage() {
   const [formData, setFormData] = useState({
     businessName: "",
     city: "",
-    experience: ""
+    experience: "",
+    rating: 5
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Form gönderme işlemi burada yapılacak
-    console.log("Form Data:", formData);
+    setIsSubmitting(true);
+
+    try {
+      // Mevcut yorumları al
+      const existingReviews = localStorage.getItem('reviews');
+      const reviews = existingReviews ? JSON.parse(existingReviews) : [];
+
+      // Yeni yorum oluştur
+      const newReview = {
+        id: Date.now().toString(),
+        businessName: formData.businessName,
+        city: formData.city,
+        experience: formData.experience,
+        rating: formData.rating,
+        createdAt: new Date().toISOString()
+      };
+
+      // Yeni yorumu ekle
+      reviews.push(newReview);
+
+      // LocalStorage'a kaydet
+      localStorage.setItem('reviews', JSON.stringify(reviews));
+
+      // Custom event dispatch et (aynı sekmedeki değişiklikleri bildirmek için)
+      window.dispatchEvent(new Event('reviewsUpdated'));
+
+      // Formu temizle
+      setFormData({
+        businessName: "",
+        city: "",
+        experience: "",
+        rating: 5
+      });
+
+      // Başarı mesajı göster
+      alert('Yorumunuz başarıyla eklendi!');
+      
+      // Ana sayfaya yönlendir
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Yorum eklenirken hata:', error);
+      alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -33,7 +78,7 @@ export default function AddReviewPage() {
           <p className="text-gray-500">İş deneyiminizi anonim olarak paylaşın</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-4">
           {/* İş Yeri Adı */}
           <div>
             <label htmlFor="businessName" className="block text-sm font-semibold text-gray-900 mb-2">
@@ -67,6 +112,32 @@ export default function AddReviewPage() {
             />
           </div>
 
+          {/* Puan */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-900 mb-2">
+              Puan <span className="text-red-600">*</span>
+            </label>
+            <div className="flex items-center space-x-2">
+              {[1, 2, 3, 4, 5].map((starNumber) => (
+                <button
+                  key={starNumber}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, rating: starNumber }))}
+                  className="focus:outline-none transition-transform hover:scale-110"
+                >
+                  <Star
+                    className={`h-8 w-8 ${
+                      starNumber <= formData.rating
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-gray-300 fill-gray-300'
+                    }`}
+                  />
+                </button>
+              ))}
+              <span className="ml-2 text-sm text-gray-600">({formData.rating}/5)</span>
+            </div>
+          </div>
+
           {/* Tecrübe */}
           <div>
             <label htmlFor="experience" className="block text-sm font-semibold text-gray-900 mb-2">
@@ -78,7 +149,7 @@ export default function AddReviewPage() {
               required
               value={formData.experience}
               onChange={handleChange}
-              rows={8}
+              rows={6}
               placeholder="İş yerinizle ilgili tecrübelerinizi detaylı bir şekilde anlatın..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none"
             />
@@ -91,10 +162,11 @@ export default function AddReviewPage() {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-red-500/50 transition-all flex items-center justify-center space-x-2"
+              disabled={isSubmitting}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-red-500/50 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="h-5 w-5" />
-              <span>Yorumu Gönder</span>
+              <span>{isSubmitting ? 'Gönderiliyor...' : 'Yorumu Gönder'}</span>
             </button>
           </div>
         </form>
