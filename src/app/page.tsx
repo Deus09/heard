@@ -2,6 +2,7 @@
 
 import { Star, Map, List, ChevronDown, Search, Bookmark, Plus, ForkKnife, MapPin, Utensils, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -22,7 +23,7 @@ function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <a className="flex items-center gap-2" href="/">
-            <Utensils className="h-5 w-5 text-primary" />
+            <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
             <span className="font-semibold">Duyur!</span>
           </a>
         </div>
@@ -68,7 +69,7 @@ function HeroSection() {
     <div className="flex flex-col items-center py-12">
       {/* Büyük Logo ve Slogan */}
       <div className="flex items-center space-x-3 mb-2">
-        <ForkKnife className="text-red-600 h-12 w-12" />
+        <Image src="/favicon/android-chrome-192x192.png" alt="Duyur!" width={48} height={48} className="h-12 w-12" />
         <h1 className="text-6xl font-extrabold text-red-600">Duyur!</h1>
       </div>
       <p className="text-md text-gray-500 mb-6">
