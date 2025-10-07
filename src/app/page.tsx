@@ -252,6 +252,12 @@ function ReviewsContainer({ searchTerm }: { searchTerm: string }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const observerTarget = useRef<HTMLDivElement>(null);
+  
+  const PAGE_SIZE = 12;
   
   const categories = [
     "Kafe Yorumları",
@@ -273,21 +279,67 @@ function ReviewsContainer({ searchTerm }: { searchTerm: string }) {
     return () => clearInterval(interval);
   }, []);
 
+  // searchTerm değiştiğinde listeyi sıfırla ve ilk sayfayı yükle
   useEffect(() => {
-    loadComments();
-  }, [searchTerm]); // searchTerm değiştiğinde yorumları yeniden yükle
+    setComments([]);
+    setPage(0);
+    setHasMore(true);
+    loadComments(0, true);
+  }, [searchTerm]);
 
-  const loadComments = async () => {
-    setLoading(true);
+  // Infinite scroll için Intersection Observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          loadMoreComments();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, loading, loadingMore, page]);
+
+  const loadComments = async (pageNum: number, isInitial: boolean = false) => {
+    if (isInitial) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+    
     try {
       const { commentsService } = await import("@/services/comments");
-      const data = await commentsService.getComments(searchTerm);
-      setComments(data.slice(0, 6)); // İlk 6 yorumu göster
+      const result = await commentsService.getCommentsPaginated(pageNum, PAGE_SIZE, searchTerm);
+      
+      if (isInitial) {
+        setComments(result.data);
+      } else {
+        setComments(prev => [...prev, ...result.data]);
+      }
+      
+      setHasMore(result.hasMore);
     } catch (error) {
       console.error('Yorumlar yüklenirken hata:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const loadMoreComments = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadComments(nextPage, false);
   };
 
   return (
@@ -315,22 +367,43 @@ function ReviewsContainer({ searchTerm }: { searchTerm: string }) {
         </div>
       ) : comments.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">Henüz yorum bulunmuyor.</p>
+          <p className="text-gray-500">
+            {searchTerm ? 'Arama kriterlerine uygun yorum bulunamadı.' : 'Henüz yorum bulunmuyor.'}
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {comments.map((comment) => (
-            <ReviewCard
-              key={comment.id}
-              company={comment.business_name}
-              address={`${comment.district}, ${comment.city}`}
-              rating={comment.rating}
-              review={comment.experience}
-              date={new Date(comment.created_at).toLocaleDateString("tr-TR")}
-              username={comment.username}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {comments.map((comment) => (
+              <ReviewCard
+                key={comment.id}
+                company={comment.business_name}
+                address={`${comment.district}, ${comment.city}`}
+                rating={comment.rating}
+                review={comment.experience}
+                date={new Date(comment.created_at).toLocaleDateString("tr-TR")}
+                username={comment.username}
+              />
+            ))}
+          </div>
+          
+          {/* Infinite Scroll Tetikleyici */}
+          <div ref={observerTarget} className="w-full py-8">
+            {loadingMore && (
+              <div className="text-center">
+                <div className="inline-flex items-center space-x-2 text-gray-400">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
+                  <span>Daha fazla yorum yükleniyor...</span>
+                </div>
+              </div>
+            )}
+            {!hasMore && comments.length > 0 && (
+              <div className="text-center text-gray-400">
+                <p>Tüm yorumlar yüklendi</p>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

@@ -22,6 +22,36 @@ export const commentsService = {
     return data as Comment[]
   },
 
+  // Sayfalı yorumları al (infinite scroll için)
+  async getCommentsPaginated(page: number = 0, pageSize: number = 12, searchTerm?: string) {
+    const from = page * pageSize
+    const to = from + pageSize - 1
+
+    let query = supabase
+      .from('comments')
+      .select('*', { count: 'exact' })
+    
+    // Arama terimi varsa filtreleme uygula
+    if (searchTerm && searchTerm.trim()) {
+      const term = `%${searchTerm.trim()}%`
+      query = query.or(`business_name.ilike.${term},city.ilike.${term},district.ilike.${term}`)
+    }
+    
+    query = query
+      .order('created_at', { ascending: false })
+      .range(from, to)
+    
+    const { data, error, count } = await query
+    
+    if (error) throw error
+    
+    return {
+      data: data as Comment[],
+      count: count || 0,
+      hasMore: count ? (from + pageSize) < count : false
+    }
+  },
+
   // Kullanıcının yorumlarını al
   async getUserComments(userId: string) {
     const { data, error } = await supabase
