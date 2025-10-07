@@ -2,12 +2,21 @@ import { supabase } from '@/lib/supabase'
 import { Comment } from '@/lib/supabase'
 
 export const commentsService = {
-  // Tüm yorumları al
-  async getComments() {
-    const { data, error } = await supabase
+  // Tüm yorumları al (opsiyonel arama terimi ile)
+  async getComments(searchTerm?: string) {
+    let query = supabase
       .from('comments')
       .select('*')
-      .order('created_at', { ascending: false })
+    
+    // Arama terimi varsa filtreleme uygula
+    if (searchTerm && searchTerm.trim()) {
+      const term = `%${searchTerm.trim()}%`
+      query = query.or(`business_name.ilike.${term},city.ilike.${term},district.ilike.${term}`)
+    }
+    
+    query = query.order('created_at', { ascending: false })
+    
+    const { data, error } = await query
     
     if (error) throw error
     return data as Comment[]

@@ -5,13 +5,15 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 
 export default function Home() {
+  const [searchTerm, setSearchTerm] = useState("");
+
   return (
     <div className="min-h-screen bg-white">
       <Header />
       <main className="max-w-6xl mx-auto px-6">
         <HeroSection />
-        <Controls />
-        <ReviewsContainer />
+        <Controls searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+        <ReviewsContainer searchTerm={searchTerm} />
       </main>
     </div>
   );
@@ -151,13 +153,13 @@ function HeroSection() {
   );
 }
 
-function Controls() {
+function Controls({ searchTerm, onSearchChange }: { searchTerm: string; onSearchChange: (value: string) => void }) {
   return (
     <div className="space-y-6 mb-8">
       {/* Arama Çubuğu - Ortalanmış */}
       <div className="flex justify-center">
         <div className="w-full max-w-lg">
-          <SearchBar />
+          <SearchBar searchTerm={searchTerm} onSearchChange={onSearchChange} />
         </div>
       </div>
       
@@ -169,13 +171,43 @@ function Controls() {
   );
 }
 
-function SearchBar() {
+function SearchBar({ searchTerm, onSearchChange }: { searchTerm: string; onSearchChange: (value: string) => void }) {
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  
+  const placeholders = [
+    "Örneğin: Zara",
+    "Örneğin: A101",
+    "Örneğin: Sarıyer",
+    "Örneğin: Starbucks",
+    "Örneğin: Kadıköy",
+    "Örneğin: McDonald's",
+    "Örneğin: Beşiktaş",
+    "Örneğin: LC Waikiki",
+    "Örneğin: Şişli",
+    "Örneğin: Migros",
+    "Örneğin: Ankara",
+    "Örneğin: Burger King",
+    "Örneğin: İzmir",
+    "Örneğin: Çarşı",
+    "Örneğin: Beyoğlu"
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
+    }, 3000); // Her 3 saniyede bir değişir
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="relative">
       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
       <input
         type="text"
-        placeholder="Restoran Ara"
+        value={searchTerm}
+        onChange={(e) => onSearchChange(e.target.value)}
+        placeholder={placeholders[placeholderIndex]}
         className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
       />
     </div>
@@ -199,7 +231,7 @@ function ViewToggle() {
   );
 }
 
-function ReviewsContainer() {
+function ReviewsContainer({ searchTerm }: { searchTerm: string }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
@@ -227,12 +259,13 @@ function ReviewsContainer() {
 
   useEffect(() => {
     loadComments();
-  }, []);
+  }, [searchTerm]); // searchTerm değiştiğinde yorumları yeniden yükle
 
   const loadComments = async () => {
+    setLoading(true);
     try {
       const { commentsService } = await import("@/services/comments");
-      const data = await commentsService.getComments();
+      const data = await commentsService.getComments(searchTerm);
       setComments(data.slice(0, 6)); // İlk 6 yorumu göster
     } catch (error) {
       console.error('Yorumlar yüklenirken hata:', error);
