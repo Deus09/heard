@@ -3,6 +3,8 @@
 import { Utensils, Menu, Send, Star } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/components/ui/toast";
+import { containsProfanity, getProfanityWords } from "@/lib/profanityFilter";
+import ReviewConfirmModal from "@/components/ReviewConfirmModal";
 
 // Şehir-İlçe verileri (tüm şehirler için)
 const districtsByCity: { [key: string]: string[] } = {
@@ -99,10 +101,44 @@ export default function AddReviewPage() {
     rating: 5
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Minimum karakter kontrolü
+    if (formData.experience.trim().length < 20) {
+      showToast('Deneyiminiz en az 20 karakter olmalıdır.', 'error');
+      return;
+    }
+
+    // İş yeri adında küfür kontrolü
+    if (containsProfanity(formData.businessName)) {
+      const badWords = getProfanityWords(formData.businessName);
+      showToast(
+        `İş yeri adı uygunsuz kelimeler içeriyor: ${badWords.join(', ')}. Lütfen düzeltin.`,
+        'error'
+      );
+      return;
+    }
+
+    // Deneyim metninde küfür kontrolü
+    if (containsProfanity(formData.experience)) {
+      const badWords = getProfanityWords(formData.experience);
+      showToast(
+        `Yorumunuz uygunsuz kelimeler içeriyor: ${badWords.join(', ')}. Lütfen düzeltin.`,
+        'error'
+      );
+      return;
+    }
+
+    // Tüm kontroller geçtiyse onay modalını göster
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSubmit = () => {
     setIsSubmitting(true);
+    setShowConfirmModal(false);
 
     try {
       // Mevcut yorumları al
@@ -117,7 +153,8 @@ export default function AddReviewPage() {
         district: formData.district,
         experience: formData.experience,
         rating: formData.rating,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        status: 'approved' // Otomatik onaylandı (küfür kontrolünden geçti)
       };
 
       // Yeni yorumu ekle
@@ -174,6 +211,12 @@ export default function AddReviewPage() {
   return (
     <div className="min-h-screen bg-white">
       <ToastContainer />
+      <ReviewConfirmModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmSubmit}
+        reviewData={formData}
+      />
       <Header />
       <main className="max-w-3xl mx-auto px-6 py-12">
         <div className="mb-8">
