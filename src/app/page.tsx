@@ -23,7 +23,7 @@ function Header() {
         <div className="flex items-center gap-2">
           <a className="flex items-center gap-2" href="/">
             <Utensils className="h-5 w-5 text-primary" />
-            <span className="font-semibold">Heard!</span>
+            <span className="font-semibold">Duyur!</span>
           </a>
         </div>
         <nav className="hidden md:flex items-center gap-6">
@@ -69,7 +69,7 @@ function HeroSection() {
       {/* Büyük Logo ve Slogan */}
       <div className="flex items-center space-x-3 mb-2">
         <ForkKnife className="text-red-600 h-12 w-12" />
-        <h1 className="text-6xl font-extrabold text-red-600">Heard!</h1>
+        <h1 className="text-6xl font-extrabold text-red-600">Duyur!</h1>
       </div>
       <p className="text-md text-gray-500 mb-6">
         İş deneyimlerinizi anonim olarak paylaşın
@@ -134,19 +134,9 @@ function ViewToggle() {
   );
 }
 
-interface Review {
-  id: string;
-  businessName: string;
-  city?: string;
-  experience: string;
-  rating: number;
-  createdAt: string;
-}
-
 function ReviewsContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [reviews, setReviews] = useState<Review[]>([]);
   const categories = [
     "Kafe Yorumları",
     "Ofis Yorumları",
@@ -154,41 +144,6 @@ function ReviewsContainer() {
     "Market Yorumları",
     "Giyim Mağazası Yorumları"
   ];
-
-  // LocalStorage'dan yorumları yükle
-  useEffect(() => {
-    const loadReviews = () => {
-      try {
-        const storedReviews = localStorage.getItem('reviews');
-        if (storedReviews) {
-          const parsedReviews = JSON.parse(storedReviews) as Review[];
-          // Tarihe göre sırala (yeniden eskiye)
-          const sortedReviews = parsedReviews.sort((a, b) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-          setReviews(sortedReviews);
-        }
-      } catch (error) {
-        console.error('Yorumlar yüklenirken hata:', error);
-      }
-    };
-
-    loadReviews();
-    
-    // LocalStorage değişikliklerini dinle
-    const handleStorageChange = () => {
-      loadReviews();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    // Aynı sekmedeki değişiklikler için özel event dinle
-    window.addEventListener('reviewsUpdated', handleStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('reviewsUpdated', handleStorageChange);
-    };
-  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -201,15 +156,6 @@ function ReviewsContainer() {
 
     return () => clearInterval(interval);
   }, []);
-
-  // Tarihi formatla
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}.${month}.${year}`;
-  };
 
   return (
     <div className="mt-8">
@@ -230,36 +176,21 @@ function ReviewsContainer() {
       </div>
       
       {/* İnceleme Kartları */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {reviews.length > 0 ? (
-          reviews.map((review) => (
-            <ReviewCard
-              key={review.id}
-              company={review.businessName}
-              address={review.city || "Şehir bilgisi yok"}
-              rating={review.rating}
-              review={review.experience}
-              date={formatDate(review.createdAt)}
-            />
-          ))
-        ) : (
-          <>
-            <ReviewCard
-              company="The Cheesecake Factory"
-              address="115 Huntington Ave Suite 181, Boston, MA 02199, USA"
-              rating={3}
-              review="Bu mekan berbat. Tam bir lüks Applebees. Yemekler vasat ve pahalı, ama o lanet çizkekler harika. Restoran sürekli..."
-              date="06.01.2023"
-            />
-            <ReviewCard
-              company="Subway"
-              address="1101 4th St SW 4th Street Bldg, Unit 130, Washington, DC 20024, USA"
-              rating={4}
-              review="Bu lokasyonun sahibi (Luke) haftada bir çalışılan vardiya başına 2 öğüne kadar %50 indirim sağlıyor (indirim öncesi) öğün başına 20$'a kadar. Eğitim..."
-              date="10.02.2023"
-            />
-          </>
-        )}
+      <div className="grid grid-cols-2 gap-6">
+        <ReviewCard
+          company="The Cheesecake Factory"
+          address="115 Huntington Ave Suite 181, Boston, MA 02199, USA"
+          rating={3}
+          review="Bu mekan berbat. Tam bir lüks Applebees. Yemekler vasat ve pahalı, ama o lanet çizkekler harika. Restoran sürekli..."
+          date="06.01.2023"
+        />
+        <ReviewCard
+          company="Subway"
+          address="1101 4th St SW 4th Street Bldg, Unit 130, Washington, DC 20024, USA"
+          rating={4}
+          review="Bu lokasyonun sahibi (Luke) haftada bir çalışılan vardiya başına 2 öğüne kadar %50 indirim sağlıyor (indirim öncesi) öğün başına 20$'a kadar. Eğitim..."
+          date="10.02.2023"
+        />
       </div>
     </div>
   );
