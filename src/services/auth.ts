@@ -65,7 +65,7 @@ export const authService = {
   },
 
   // Auth state değişikliklerini dinle
-  onAuthStateChange(callback: (event: string, session: any) => void) {
+  onAuthStateChange(callback: import('@/types').AuthStateChangeCallback) {
     return supabase.auth.onAuthStateChange(callback)
   }
 }

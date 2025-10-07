@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { Comment } from '@/lib/supabase'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 export const commentsService = {
   // Tüm yorumları al (opsiyonel arama terimi ile)
@@ -145,10 +146,12 @@ export const commentsService = {
   },
 
   // Gerçek zamanlı güncellemeler için abone ol
-  subscribeToComments(callback: (payload: any) => void) {
+  // Supabase'in kendi RealtimePostgresChangesPayload tipini kullanıyoruz
+  subscribeToComments(callback: (payload: RealtimePostgresChangesPayload<Comment>) => void) {
     return supabase
       .channel('comments')
-      .on('postgres_changes', 
+      .on(
+        'postgres_changes' as any, // Supabase'in tip tanımı sorunu için geçici çözüm
         { event: '*', schema: 'public', table: 'comments' },
         callback
       )

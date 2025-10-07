@@ -100,12 +100,13 @@ export default function ReviewDetailModal({
         setCount(prev => prev + 1);
         if (showToast) showToast('📢 Yorum duyuruldu!', 'success');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Duyuru işlemi hatası:', error);
       
       // Kullanıcıya toast ile bilgi ver
       if (showToast) {
-        if (error?.message && error.message.includes('zaten duyurdunuz')) {
+        const errorMessage = error instanceof Error ? error.message : '';
+        if (errorMessage.includes('zaten duyurdunuz')) {
           showToast('⚠️ Bu yorumu zaten duyurdunuz', 'warning');
         } else {
           showToast('❌ Bir hata oluştu. Lütfen tekrar deneyin', 'error');

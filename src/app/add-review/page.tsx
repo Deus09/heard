@@ -173,9 +173,10 @@ export default function AddReviewPage() {
       setTimeout(() => {
         window.location.href = '/';
       }, 1500);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Yorum eklenirken hata:', error);
-      showToast(error.message || 'Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
+      const errorMessage = error instanceof Error ? error.message : 'Bir hata oluştu. Lütfen tekrar deneyin.';
+      showToast(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }

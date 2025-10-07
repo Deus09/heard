@@ -290,7 +290,7 @@ function ViewToggle() {
 function ReviewsContainer({ searchTerm, showToast }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [comments, setComments] = useState<any[]>(() => {
+  const [comments, setComments] = useState<import('@/types').CommentWithAnnounces[]>(() => {
     // İlk yüklemede localStorage'dan yorumları al
     if (typeof window !== 'undefined') {
       const cached = localStorage.getItem('cached_comments');
@@ -568,11 +568,12 @@ function ReviewCard({ company, address, rating, review, date, username, commentI
         setCount(prev => prev + 1);
         showToast('📢 Yorum duyuruldu!', 'success');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Duyuru işlemi hatası:', error);
       
       // Kullanıcıya toast ile bilgi ver
-      if (error?.message && error.message.includes('zaten duyurdunuz')) {
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (errorMessage.includes('zaten duyurdunuz')) {
         showToast('⚠️ Bu yorumu zaten duyurdunuz', 'warning');
       } else {
         showToast('❌ Bir hata oluştu. Lütfen tekrar deneyin', 'error');

@@ -66,9 +66,10 @@ export default function AuthPage() {
           setIsLogin(true);
         }, 2000);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Auth error:", err);
-      setError(err.message || "Bir hata oluştu");
+      const errorMessage = err instanceof Error ? err.message : "Bir hata oluştu";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

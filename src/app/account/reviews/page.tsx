@@ -84,7 +84,7 @@ function LoginRequiredPage() {
 }
 
 function ReviewsListPage() {
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<import('@/types').Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -114,8 +114,9 @@ function ReviewsListPage() {
         const { commentsService } = await import("@/services/comments");
         await commentsService.deleteComment(id);
         setReviews(reviews.filter(review => review.id !== id));
-      } catch (error: any) {
-        alert(error.message || 'Yorum silinirken hata oluştu');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Yorum silinirken hata oluştu';
+        alert(errorMessage);
       }
     }
   };
