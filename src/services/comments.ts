@@ -151,8 +151,8 @@ export const commentsService = {
     return supabase
       .channel('comments')
       .on(
-        'postgres_changes' as any, // Supabase'in tip tanımı sorunu için geçici çözüm
-        { event: '*', schema: 'public', table: 'comments' },
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'comments' } as const,
         callback
       )
       .subscribe()
