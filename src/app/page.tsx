@@ -288,7 +288,20 @@ function ViewToggle() {
 function ReviewsContainer({ searchTerm, showToast }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<any[]>(() => {
+    // İlk yüklemede localStorage'dan yorumları al
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('cached_comments');
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {
+          return [];
+        }
+      }
+    }
+    return [];
+  });
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(0);
@@ -319,7 +332,23 @@ function ReviewsContainer({ searchTerm, showToast }: { searchTerm: string; showT
 
   // searchTerm değiştiğinde listeyi sıfırla ve ilk sayfayı yükle
   useEffect(() => {
-    setComments([]);
+    // Eğer arama temizleniyorsa (boş string) ve cache varsa, cache'i kullan
+    if (!searchTerm && typeof window !== 'undefined') {
+      const cached = localStorage.getItem('cached_comments');
+      if (cached) {
+        try {
+          const cachedData = JSON.parse(cached);
+          setComments(cachedData);
+        } catch (e) {
+          setComments([]);
+        }
+      } else {
+        setComments([]);
+      }
+    } else {
+      setComments([]);
+    }
+    
     setPage(0);
     setHasMore(true);
     loadComments(0, true);
@@ -361,6 +390,16 @@ function ReviewsContainer({ searchTerm, showToast }: { searchTerm: string; showT
       
       if (isInitial) {
         setComments(result.data);
+        
+        // İlk 4 yorumu localStorage'a kaydet (sadece arama yoksa)
+        if (!searchTerm && result.data.length > 0) {
+          const firstFour = result.data.slice(0, 4);
+          try {
+            localStorage.setItem('cached_comments', JSON.stringify(firstFour));
+          } catch (e) {
+            console.warn('localStorage kayıt hatası:', e);
+          }
+        }
       } else {
         setComments(prev => [...prev, ...result.data]);
       }
