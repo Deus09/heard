@@ -2,8 +2,10 @@
 
 import { Utensils, Menu, Send, Star } from "lucide-react";
 import { useState } from "react";
+import { useToast } from "@/components/ui/toast";
 
 export default function AddReviewPage() {
+  const { showToast, ToastContainer } = useToast();
   const [formData, setFormData] = useState({
     businessName: "",
     city: "",
@@ -49,13 +51,15 @@ export default function AddReviewPage() {
       });
 
       // Başarı mesajı göster
-      alert('Yorumunuz başarıyla eklendi!');
+      showToast('Yorumunuz başarıyla eklendi', 'success');
       
-      // Ana sayfaya yönlendir
-      window.location.href = '/';
+      // Ana sayfaya yönlendir (toast mesajını görmek için kısa bir gecikme)
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
     } catch (error) {
       console.error('Yorum eklenirken hata:', error);
-      alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+      showToast('Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,6 +75,7 @@ export default function AddReviewPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <ToastContainer />
       <Header />
       <main className="max-w-3xl mx-auto px-6 py-12">
         <div className="mb-8">
