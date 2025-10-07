@@ -5,6 +5,8 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ReviewDetailModal from "@/components/ReviewDetailModal";
 import { useToast } from "@/components/ui/toast";
+import Link from 'next/link'; // Sayfanın en üstüne ekle
+
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -126,11 +128,11 @@ function Header() {
                 Çıkış Yap
               </button>
             ) : (
-              <a href="/auth">
+              <Link href="/auth">
                 <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Giriş Yap">
                   Giriş Yap
                 </button>
-              </a>
+              </Link>
             )}
           </div>
         </div>
@@ -145,11 +147,11 @@ function Header() {
                 Çıkış Yap
               </button>
             ) : (
-              <a href="/auth">
+              <Link href="/auth">
                 <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Giriş Yap">
                   Giriş Yap
                 </button>
-              </a>
+              </Link>
             )}
           </div>
           <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="Menüyü Aç" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-:r0:" data-state="closed">
@@ -174,12 +176,12 @@ function HeroSection() {
       </p>
       
       {/* Ana Eylem Butonu */}
-      <a href="/add-review">
+      <Link href="/add-review">
         <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6  rounded-xl shadow-lg shadow-red-500/50 transition-all flex items-center space-x-2 mb-12">
           <Plus className="h-5 w-5" />
           <span>Yorum Ekle</span>
         </button>
-      </a>
+      </Link>
     </div>
   );
 }

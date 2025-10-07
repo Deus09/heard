@@ -170,11 +170,11 @@ function ReviewsListPage() {
             <p className="text-gray-500 mb-6">
               İlk yorumunuzu ekleyerek deneyimlerinizi paylaşmaya başlayın.
             </p>
-            <a href="/add-review">
+            <Link href="/add-review">
               <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg shadow-red-500/50 transition-all">
                 Yorum Ekle
               </button>
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="space-y-6">
@@ -233,11 +233,11 @@ function ReviewsListPage() {
 
         {reviews.length > 0 && (
           <div className="mt-8 text-center">
-            <a href="/add-review">
+            <Link href="/add-review">
               <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg shadow-red-500/50 transition-all">
                 Yeni Yorum Ekle
               </button>
-            </a>
+            </Link>
           </div>
         )}
       </main>
@@ -325,11 +325,11 @@ function Header() {
                 Çıkış Yap
               </button>
             ) : (
-              <a href="/auth">
+              <Link href="/auth">
                 <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Giriş Yap">
                   Giriş Yap
                 </button>
-              </a>
+              </Link>
             )}
           </div>
         </div>
@@ -344,11 +344,11 @@ function Header() {
                 Çıkış Yap
               </button>
             ) : (
-              <a href="/auth">
+              <Link href="/auth">
                 <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-3" aria-label="Giriş Yap">
                   Giriş Yap
                 </button>
-              </a>
+              </Link>
             )}
           </div>
           <button

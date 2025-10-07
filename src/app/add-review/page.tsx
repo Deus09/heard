@@ -6,6 +6,8 @@ import { useToast } from "@/components/ui/toast";
 import { containsProfanity, getProfanityWords } from "@/lib/profanityFilter";
 import ReviewConfirmModal from "@/components/ReviewConfirmModal";
 import Image from "next/image";
+import Link from 'next/link'; // Sayfanın en üstüne ekle
+
 
 // Şehir-İlçe verileri (tüm şehirler için)
 const districtsByCity: { [key: string]: string[] } = {
@@ -483,11 +485,11 @@ function Header() {
                 Çıkış Yap
               </button>
             ) : (
-              <a href="/auth">
+              <Link href="/auth">
                 <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Giriş Yap">
                   Giriş Yap
                 </button>
-              </a>
+              </Link>
             )}
           </div>
         </div>
@@ -502,11 +504,11 @@ function Header() {
                 Çıkış Yap
               </button>
             ) : (
-              <a href="/auth">
+              <Link href="/auth">
                 <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" aria-label="Giriş Yap">
                   Giriş Yap
                 </button>
-              </a>
+              </Link>
             )}
           </div>
           <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="Menüyü Aç" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-:r0:" data-state="closed">
