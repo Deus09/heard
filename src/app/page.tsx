@@ -535,8 +535,7 @@ function ReviewCard({ company, address, rating, review, date, username, commentI
                 alt="Duyur" 
                 width={24} 
                 height={24} 
-                className={`transition-all duration-200 ${announced ? 'brightness-[0.3] saturate-[10] hue-rotate-[-10deg]' : 'grayscale'}`}
-                style={announced ? { filter: 'brightness(0.5) saturate(100%) hue-rotate(330deg)' } : {}}
+                className={`transition-all duration-200 ${announced ? '' : 'grayscale'}`}
               />
             </button>
             {count > 0 && (
