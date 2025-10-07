@@ -4,8 +4,10 @@ import { Utensils, Menu, Mail, Lock, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth";
+import { useToast } from "@/components/ui/toast";
 
 export default function AuthPage() {
+  const { showToast, ToastContainer } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
@@ -36,7 +38,10 @@ export default function AuthPage() {
       if (isLogin) {
         // Giriş yap
         await authService.signIn(formData.email, formData.password);
-        router.push("/");
+        showToast("Giriş başarılı! Yönlendiriliyorsunuz...", "success");
+        setTimeout(() => {
+          router.push("/");
+        }, 1000);
       } else {
         // Kayıt ol
         if (!formData.username.trim()) {
@@ -46,9 +51,17 @@ export default function AuthPage() {
         }
         
         await authService.signUp(formData.email, formData.password, formData.username);
-        // Email doğrulama mesajı göster
-        alert("Kayıt başarılı! Lütfen email adresinizi kontrol edin ve hesabınızı doğrulayın.");
-        setIsLogin(true);
+        
+        // Başarılı kayıt mesajı göster
+        showToast("Kayıt başarılı! Lütfen email adresinizi kontrol edin ve hesabınızı doğrulayın.", "success");
+        
+        // Formu temizle ve giriş ekranına geç
+        setFormData({ email: "", password: "", username: "" });
+        
+        // 2 saniye sonra giriş ekranına geç
+        setTimeout(() => {
+          setIsLogin(true);
+        }, 2000);
       }
     } catch (err: any) {
       console.error("Auth error:", err);
@@ -69,6 +82,7 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <ToastContainer />
       <Header />
       <main className="max-w-md mx-auto px-6 py-12">
         <div className="mb-8 text-center">
