@@ -109,7 +109,7 @@ export default function AddReviewPage() {
 
     // Minimum karakter kontrolü
     if (formData.experience.trim().length < 20) {
-      showToast('Deneyiminiz en az 20 karakter olmalıdır.', 'error');
+      showToast('Deneyiminiz en az 30 karakter olmalıdır.', 'error');
       return;
     }
 
