@@ -8,15 +8,24 @@ import { useToast } from "@/components/ui/toast";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeSearchTerm, setActiveSearchTerm] = useState("");
   const { showToast, ToastContainer } = useToast();
+
+  const handleSearch = (value: string) => {
+    setActiveSearchTerm(value);
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
       <main className="max-w-6xl mx-auto px-6 flex-grow">
         <HeroSection />
-        <Controls searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-        <ReviewsContainer searchTerm={searchTerm} showToast={showToast} />
+        <Controls 
+          searchTerm={searchTerm} 
+          onSearchChange={setSearchTerm}
+          onSearch={handleSearch}
+        />
+        <ReviewsContainer searchTerm={activeSearchTerm} showToast={showToast} />
       </main>
       <Footer />
       <ToastContainer />
@@ -175,13 +184,13 @@ function HeroSection() {
   );
 }
 
-function Controls({ searchTerm, onSearchChange }: { searchTerm: string; onSearchChange: (value: string) => void }) {
+function Controls({ searchTerm, onSearchChange, onSearch }: { searchTerm: string; onSearchChange: (value: string) => void; onSearch: (value: string) => void }) {
   return (
     <div className="space-y-6 mb-8">
       {/* Arama Çubuğu - Ortalanmış */}
       <div className="flex justify-center">
         <div className="w-full max-w-lg">
-          <SearchBar searchTerm={searchTerm} onSearchChange={onSearchChange} />
+          <SearchBar searchTerm={searchTerm} onSearchChange={onSearchChange} onSearch={onSearch} />
         </div>
       </div>
       
@@ -193,7 +202,7 @@ function Controls({ searchTerm, onSearchChange }: { searchTerm: string; onSearch
   );
 }
 
-function SearchBar({ searchTerm, onSearchChange }: { searchTerm: string; onSearchChange: (value: string) => void }) {
+function SearchBar({ searchTerm, onSearchChange, onSearch }: { searchTerm: string; onSearchChange: (value: string) => void; onSearch: (value: string) => void }) {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   
   const placeholders = [
@@ -222,6 +231,12 @@ function SearchBar({ searchTerm, onSearchChange }: { searchTerm: string; onSearc
     return () => clearInterval(interval);
   }, []);
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onSearch(searchTerm);
+    }
+  };
+
   return (
     <div className="relative">
       <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -229,6 +244,7 @@ function SearchBar({ searchTerm, onSearchChange }: { searchTerm: string; onSearc
         type="text"
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder={placeholders[placeholderIndex]}
         className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
       />
