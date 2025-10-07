@@ -252,10 +252,10 @@ function Header() {
       <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <a className="flex items-center gap-2" href="/">
+            <Link className="flex items-center gap-2" href="/">
               <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
               <span className="font-semibold">Duyur!</span>
-            </a>
+            </Link> 
           </div>
         </div>
       </header>
@@ -266,24 +266,24 @@ function Header() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2">
-          <a className="flex items-center gap-2" href="/">
+          <Link className="flex items-center gap-2" href="/">
             <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
             <span className="font-semibold">Duyur!</span>
-          </a>
+          </Link> 
         </div>
         <nav className="hidden md:flex items-center gap-6">
-          <a className="text-foreground hover:text-primary transition-colors" href="/">
+          <Link className="text-foreground hover:text-primary transition-colors" href="/">
             Ana Sayfa
-          </a>
-          <a className="text-foreground hover:text-primary transition-colors" href="/duyduy">
+          </Link> 
+          <Link className="text-foreground hover:text-primary transition-colors" href="/duyduy">
             DuyDuy!!!
-          </a>
-          <a className="text-foreground hover:text-primary transition-colors" href="/add-review">
+          </Link> 
+          <Link className="text-foreground hover:text-primary transition-colors" href="/add-review">
             Yorum Ekle
-          </a>
-          <a className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
+          </Link> 
+          <Link className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
             Yorumlarım
-          </a>
+          </Link> 
         </nav>
         <div className="hidden md:block">
           <div className="">
