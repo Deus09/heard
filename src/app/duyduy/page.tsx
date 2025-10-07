@@ -205,26 +205,6 @@ function ReviewsContainer({ showToast }: { showToast: (message: string, type?: '
     loadComments();
   }, [loadComments]);
 
-  const handleAnnounce = async (commentId: string) => {
-    try {
-      const comment = comments.find(c => c.id === commentId);
-      if (!comment) return;
-
-      if (comment.hasAnnounced) {
-        await commentsService.unannounceComment(commentId);
-        showToast('Duyuru geri alındı', 'success');
-      } else {
-        await commentsService.announceComment(commentId);
-        showToast('Yorum duyuruldu!', 'success');
-      }
-
-      // Yorumları yeniden yükle
-      await loadComments();
-    } catch (error: any) {
-      showToast(error.message || 'Bir hata oluştu', 'error');
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -255,7 +235,6 @@ function ReviewsContainer({ showToast }: { showToast: (message: string, type?: '
             key={comment.id}
             review={comment}
             onSelect={() => setSelectedReview(comment)}
-            onAnnounce={handleAnnounce}
           />
         ))}
       </div>
@@ -282,29 +261,21 @@ function ReviewsContainer({ showToast }: { showToast: (message: string, type?: '
 
 function ReviewCard({ 
   review, 
-  onSelect,
-  onAnnounce 
+  onSelect
 }: { 
   review: CommentWithAnnounce; 
   onSelect: () => void;
-  onAnnounce: (commentId: string) => void;
 }) {
-  const handleAnnounceClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onAnnounce(review.id);
-  };
-
   return (
     <div 
       className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all cursor-pointer relative group"
       onClick={onSelect}
     >
-      {/* Duyur Butonu - Sağ üst köşe */}
+      {/* Duyur Butonu - Sağ üst köşe (Sadece görüntüleme - tıklanamaz) */}
       <div className="absolute top-4 right-4 flex flex-col items-center gap-1">
-        <button
-          onClick={handleAnnounceClick}
-          className="transition-transform hover:scale-110"
-          aria-label={review.hasAnnounced ? "Duyuruyu Geri Al" : "Duyur"}
+        <div
+          className="cursor-default"
+          aria-label="Duyuru sayısı"
         >
           <Image 
             src="/favicon/favicon-32x32.png" 
@@ -313,7 +284,7 @@ function ReviewCard({
             height={24}
             className={review.hasAnnounced ? "duyur-active" : "duyur-inactive"}
           />
-        </button>
+        </div>
         {review.announceCount > 0 && (
           <span className={`text-xs font-semibold ${review.hasAnnounced ? 'text-red-600' : 'text-gray-400'}`}>
             {review.announceCount}
