@@ -59,9 +59,10 @@ Uygulama http://localhost:3000 adresinde çalışmaya başlayacaktır.
 
 - **Kullanıcı Kaydı**: Email ve şifre ile kayıt
 - **Giriş/Çıkış**: Güvenli authentication
+- **Anonim Yorum**: Giriş yapmadan yorum ekleme (otomatik username: anon2025X)
 - **Yorum Ekleme**: İş deneyimlerini paylaşma
 - **Yorumları Görüntüleme**: Tüm yorumları listeleme
-- **Kullanıcı-Yorum İlişkisi**: Her yorum bir kullanıcıya ait
+- **Kullanıcı-Yorum İlişkisi**: Her yorum bir kullanıcıya ait (veya anonim)
 - **Profil Yönetimi**: Otomatik profil oluşturma
 - **Güvenlik**: Row Level Security (RLS) ile veri koruması
 
@@ -97,7 +98,7 @@ Uygulama http://localhost:3000 adresinde çalışmaya başlayacaktır.
 #### Comments Tablosu
 ```sql
 - id (uuid, primary key)
-- user_id (uuid, foreign key)
+- user_id (uuid, foreign key, nullable - anonim kullanıcılar için)
 - username (text)
 - business_name (text)
 - city (text)
@@ -147,11 +148,13 @@ npm run dev
 
 ## 📝 Notlar
 
+- **Anonim Yorum**: Giriş yapmadan yorum eklenebilir (otomatik username: anon2025X formatında)
 - Email doğrulama zorunlu değil (geliştirme için)
 - Aynı email ile tekrar kayıt olunamaz
 - Kullanıcı adları benzersiz olmalıdır
 - Yorumlar minimum 20 karakter olmalıdır
 - Küfür içeren yorumlar engellenir
+- Anonim yorumlar silinemez (user_id null olduğu için)
 
 ## 🐛 Sorun Giderme
 

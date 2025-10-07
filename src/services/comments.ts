@@ -25,7 +25,7 @@ export const commentsService = {
     return data as Comment[]
   },
 
-  // Yorum ekle
+  // Yorum ekle (giriş yapmadan da eklenebilir)
   async addComment(
     businessName: string,
     city: string,
@@ -35,33 +35,60 @@ export const commentsService = {
     anonymous: boolean = false
   ) {
     const user = await supabase.auth.getUser()
-    if (!user.data.user) throw new Error('Giriş yapmalısınız')
+    
+    let userId: string | null = null
+    let username: string
 
-    const profile = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('id', user.data.user.id)
-      .single()
+    if (user.data.user) {
+      // Kullanıcı giriş yapmış
+      userId = user.data.user.id
 
-    if (!profile.data) throw new Error('Profil bulunamadı')
+      const profile = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.data.user.id)
+        .single()
+
+      if (!profile.data) throw new Error('Profil bulunamadı')
+      username = anonymous ? 'Anonim' : profile.data.username
+    } else {
+      // Kullanıcı giriş yapmamış - rastgele username oluştur
+      username = await this.generateAnonymousUsername()
+    }
 
     const { data, error } = await supabase
       .from('comments')
       .insert({
-        user_id: user.data.user.id,
-        username: anonymous ? 'Anonim' : profile.data.username,
+        user_id: userId,
+        username,
         business_name: businessName,
         city,
         district,
         experience,
         rating,
-        anonymous
+        anonymous: !user.data.user ? true : anonymous
       })
       .select()
       .single()
     
     if (error) throw error
     return data as Comment
+  },
+
+  // Anonim kullanıcı için benzersiz username oluştur
+  async generateAnonymousUsername() {
+    const currentYear = new Date().getFullYear()
+    
+    // Bu yıl oluşturulan anonim yorumları say
+    const { count, error } = await supabase
+      .from('comments')
+      .select('*', { count: 'exact', head: true })
+      .like('username', `anon${currentYear}%`)
+    
+    if (error) throw error
+    
+    const commentCount = (count || 0) + 1
+    return `anon${currentYear}${commentCount}`
   },
 
   // Yorumu sil (sadece kendi yorumunu silebilir)

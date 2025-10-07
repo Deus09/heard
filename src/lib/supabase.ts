@@ -14,7 +14,7 @@ export interface Profile {
 
 export interface Comment {
   id: string
-  user_id: string
+  user_id: string | null  // Anonim kullanıcılar için null olabilir
   username: string
   business_name: string
   city: string

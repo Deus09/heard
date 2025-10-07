@@ -143,25 +143,15 @@ export default function AddReviewPage() {
     try {
       // Supabase'e yorumu kaydet
       const { commentsService } = await import("@/services/comments");
-      const { authService } = await import("@/services/auth");
       
-      // Kullanıcı giriş yapmış mı kontrol et
-      const user = await authService.getCurrentUser();
-      if (!user) {
-        showToast('Yorum eklemek için giriş yapmalısınız', 'error');
-        setTimeout(() => {
-          window.location.href = '/auth';
-        }, 1500);
-        return;
-      }
-
+      // Kullanıcı giriş yapmamış olsa bile yorum ekleyebilir (anonim olarak)
       await commentsService.addComment(
         formData.businessName,
         formData.city,
         formData.district,
         formData.experience,
         formData.rating,
-        false // Şimdilik anonim özelliği yok
+        false
       );
 
       // Formu temizle

@@ -10,7 +10,7 @@ create table profiles (
 -- Comments tablosu
 create table comments (
   id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users on delete cascade not null,
+  user_id uuid references auth.users on delete cascade, -- NULL olabilir (anonim kullanıcılar için)
   username text not null,
   business_name text not null,
   city text not null,
@@ -38,14 +38,14 @@ create policy "Users can update own profile"
   on profiles for update
   using ( auth.uid() = id );
 
--- Comments: Herkes okuyabilir, giriş yapanlar yazabilir
+-- Comments: Herkes okuyabilir, herkes yazabilir (anonim dahil)
 create policy "Comments are viewable by everyone"
   on comments for select
   using ( true );
 
-create policy "Authenticated users can insert comments"
+create policy "Anyone can insert comments"
   on comments for insert
-  with check ( auth.role() = 'authenticated' );
+  with check ( true );
 
 create policy "Users can delete own comments"
   on comments for delete
