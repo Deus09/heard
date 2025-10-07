@@ -18,3 +18,22 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
 }
+
+/* Duyur Buton Stilleri */
+.duyur-inactive {
+  filter: grayscale(100%);
+}
+
+.duyur-active {
+  filter: hue-rotate(0deg) saturate(2) brightness(1.1);
+  animation: pulse-red 0.5s ease-in-out;
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}

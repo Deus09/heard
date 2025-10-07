@@ -303,6 +303,9 @@ function Header() {
           <a className="text-foreground hover:text-primary transition-colors" href="/">
             Ana Sayfa
           </a>
+          <a className="text-foreground hover:text-primary transition-colors" href="/duyduy">
+            DuyDuy!!!
+          </a>
           <a className="text-foreground hover:text-primary transition-colors" href="/add-review">
             Yorum Ekle
           </a>
@@ -364,6 +367,12 @@ function Header() {
             href="/"
           >
             Ana Sayfa
+          </a>
+          <a
+            className="block text-foreground hover:text-primary transition-colors py-2"
+            href="/duyduy"
+          >
+            DuyDuy!!!
           </a>
           <a
             className="block text-foreground hover:text-primary transition-colors py-2"
