@@ -1,7 +1,8 @@
 "use client";
 
 import { X, Star, MapPin } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface ReviewDetailModalProps {
   isOpen: boolean;
@@ -12,6 +13,10 @@ interface ReviewDetailModalProps {
   review: string;
   date: string;
   username?: string;
+  commentId?: string;
+  announceCount?: number;
+  hasAnnounced?: boolean;
+  showToast?: (message: string, type?: "success" | "error" | "info" | "warning") => void;
 }
 
 export default function ReviewDetailModal({
@@ -23,7 +28,15 @@ export default function ReviewDetailModal({
   review,
   date,
   username,
+  commentId,
+  announceCount = 0,
+  hasAnnounced = false,
+  showToast,
 }: ReviewDetailModalProps) {
+  const [announced, setAnnounced] = useState(hasAnnounced);
+  const [count, setCount] = useState(announceCount);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   // ESC tuşu ile kapatma
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -42,6 +55,66 @@ export default function ReviewDetailModal({
       document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    setAnnounced(hasAnnounced);
+    setCount(announceCount);
+  }, [hasAnnounced, announceCount]);
+
+  const handleAnnounceClick = async () => {
+    if (isProcessing || !commentId) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Önce kullanıcı giriş yapmış mı kontrol et
+      const { authService } = await import("@/services/auth");
+      const currentUser = await authService.getCurrentUser();
+      
+      if (!currentUser) {
+        // Giriş yapmamış kullanıcı - Toast ile bildir
+        if (showToast) {
+          showToast('🔒 Duyur özelliğini kullanmak için giriş yapmalısınız', 'warning');
+          setTimeout(() => {
+            window.location.href = '/auth';
+          }, 1500);
+        }
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Optimistic update için eski değerleri sakla
+      const oldAnnounced = announced;
+      const oldCount = count;
+      
+      const { commentsService } = await import("@/services/comments");
+      
+      if (announced) {
+        await commentsService.unannounceComment(commentId);
+        setAnnounced(false);
+        setCount(prev => Math.max(0, prev - 1));
+        if (showToast) showToast('✅ Duyuru geri alındı', 'success');
+      } else {
+        await commentsService.announceComment(commentId);
+        setAnnounced(true);
+        setCount(prev => prev + 1);
+        if (showToast) showToast('📢 Yorum duyuruldu!', 'success');
+      }
+    } catch (error: any) {
+      console.error('Duyuru işlemi hatası:', error);
+      
+      // Kullanıcıya toast ile bilgi ver
+      if (showToast) {
+        if (error?.message && error.message.includes('zaten duyurdunuz')) {
+          showToast('⚠️ Bu yorumu zaten duyurdunuz', 'warning');
+        } else {
+          showToast('❌ Bir hata oluştu. Lütfen tekrar deneyin', 'error');
+        }
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -68,9 +141,36 @@ export default function ReviewDetailModal({
         <div className="p-8">
           {/* Üst Kısım: İşletme Bilgileri */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2 pr-8">
-              {company}
-            </h2>
+            <div className="flex justify-between items-start mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 pr-8">
+                {company}
+              </h2>
+              {/* Duyur Butonu */}
+              {commentId && (
+                <div className="flex flex-col items-center">
+                  <button 
+                    onClick={handleAnnounceClick}
+                    disabled={isProcessing}
+                    className={`transition-all duration-200 ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+                    aria-label={announced ? "Duyuruyu geri al" : "Duyur"}
+                  >
+                    <Image 
+                      src="/favicon/favicon-32x32.png" 
+                      alt="Duyur" 
+                      width={32} 
+                      height={32} 
+                      className={`transition-all duration-200 ${announced ? 'brightness-[0.3] saturate-[10] hue-rotate-[-10deg]' : 'grayscale'}`}
+                      style={announced ? { filter: 'brightness(0.5) saturate(100%) hue-rotate(330deg)' } : {}}
+                    />
+                  </button>
+                  {count > 0 && (
+                    <span className={`text-sm mt-1 font-medium ${announced ? 'text-red-600' : 'text-gray-500'}`}>
+                      {count}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="flex items-start space-x-2 mb-4">
               <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-gray-500">{address}</p>

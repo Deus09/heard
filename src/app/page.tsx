@@ -4,9 +4,11 @@ import { Star, Map, List, ChevronDown, Search, Bookmark, Plus, ForkKnife, MapPin
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ReviewDetailModal from "@/components/ReviewDetailModal";
+import { useToast } from "@/components/ui/toast";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { showToast, ToastContainer } = useToast();
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -14,9 +16,10 @@ export default function Home() {
       <main className="max-w-6xl mx-auto px-6 flex-grow">
         <HeroSection />
         <Controls searchTerm={searchTerm} onSearchChange={setSearchTerm} />
-        <ReviewsContainer searchTerm={searchTerm} />
+        <ReviewsContainer searchTerm={searchTerm} showToast={showToast} />
       </main>
       <Footer />
+      <ToastContainer />
     </div>
   );
 }
@@ -247,7 +250,7 @@ function ViewToggle() {
   );
 }
 
-function ReviewsContainer({ searchTerm }: { searchTerm: string }) {
+function ReviewsContainer({ searchTerm, showToast }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
@@ -319,7 +322,7 @@ function ReviewsContainer({ searchTerm }: { searchTerm: string }) {
     
     try {
       const { commentsService } = await import("@/services/comments");
-      const result = await commentsService.getCommentsPaginated(pageNum, PAGE_SIZE, searchTerm);
+      const result = await commentsService.getCommentsPaginatedWithAnnounces(pageNum, PAGE_SIZE, searchTerm);
       
       if (isInitial) {
         setComments(result.data);
@@ -377,12 +380,16 @@ function ReviewsContainer({ searchTerm }: { searchTerm: string }) {
             {comments.map((comment) => (
               <ReviewCard
                 key={comment.id}
+                commentId={comment.id}
                 company={comment.business_name}
                 address={`${comment.district}, ${comment.city}`}
                 rating={comment.rating}
                 review={comment.experience}
                 date={new Date(comment.created_at).toLocaleDateString("tr-TR")}
                 username={comment.username}
+                announceCount={comment.announceCount || 0}
+                hasAnnounced={comment.hasAnnounced || false}
+                showToast={showToast}
               />
             ))}
           </div>
@@ -416,12 +423,19 @@ interface ReviewCardProps {
   review: string;
   date: string;
   username?: string;
+  commentId: string;
+  announceCount?: number;
+  hasAnnounced?: boolean;
+  showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void;
 }
 
-function ReviewCard({ company, address, rating, review, date, username }: ReviewCardProps) {
+function ReviewCard({ company, address, rating, review, date, username, commentId, announceCount = 0, hasAnnounced = false, showToast }: ReviewCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [announced, setAnnounced] = useState(hasAnnounced);
+  const [count, setCount] = useState(announceCount);
+  const [isProcessing, setIsProcessing] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
@@ -433,6 +447,64 @@ function ReviewCard({ company, address, rating, review, date, username }: Review
       setIsTruncated(actualHeight > maxHeight);
     }
   }, [review]);
+
+  useEffect(() => {
+    setAnnounced(hasAnnounced);
+    setCount(announceCount);
+  }, [hasAnnounced, announceCount]);
+
+  const handleAnnounceClick = async () => {
+    if (isProcessing) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Önce kullanıcı giriş yapmış mı kontrol et
+      const { authService } = await import("@/services/auth");
+      const currentUser = await authService.getCurrentUser();
+      
+      if (!currentUser) {
+        // Giriş yapmamış kullanıcı - Toast ile bildir
+        showToast('🔒 Duyur özelliğini kullanmak için giriş yapmalısınız', 'warning');
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 1500);
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Optimistic update için eski değerleri sakla
+      const oldAnnounced = announced;
+      const oldCount = count;
+      
+      const { commentsService } = await import("@/services/comments");
+      
+      if (announced) {
+        // Duyuruyu geri al
+        await commentsService.unannounceComment(commentId);
+        setAnnounced(false);
+        setCount(prev => Math.max(0, prev - 1));
+        showToast('✅ Duyuru geri alındı', 'success');
+      } else {
+        // Duyur
+        await commentsService.announceComment(commentId);
+        setAnnounced(true);
+        setCount(prev => prev + 1);
+        showToast('📢 Yorum duyuruldu!', 'success');
+      }
+    } catch (error: any) {
+      console.error('Duyuru işlemi hatası:', error);
+      
+      // Kullanıcıya toast ile bilgi ver
+      if (error?.message && error.message.includes('zaten duyurdunuz')) {
+        showToast('⚠️ Bu yorumu zaten duyurdunuz', 'warning');
+      } else {
+        showToast('❌ Bir hata oluştu. Lütfen tekrar deneyin', 'error');
+      }
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <>
@@ -450,8 +522,29 @@ function ReviewCard({ company, address, rating, review, date, username }: Review
               <p className="text-sm text-gray-500">{address}</p>
             </div>
           </div>
-          {/* Sağ Üst İkon */}
-          <Bookmark className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" />
+          {/* Sağ Üst Duyur Butonu */}
+          <div className="flex flex-col items-center ml-2">
+            <button 
+              onClick={handleAnnounceClick}
+              disabled={isProcessing}
+              className={`transition-all duration-200 ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+              aria-label={announced ? "Duyuruyu geri al" : "Duyur"}
+            >
+              <Image 
+                src="/favicon/favicon-32x32.png" 
+                alt="Duyur" 
+                width={24} 
+                height={24} 
+                className={`transition-all duration-200 ${announced ? 'brightness-[0.3] saturate-[10] hue-rotate-[-10deg]' : 'grayscale'}`}
+                style={announced ? { filter: 'brightness(0.5) saturate(100%) hue-rotate(330deg)' } : {}}
+              />
+            </button>
+            {count > 0 && (
+              <span className={`text-xs mt-1 font-medium ${announced ? 'text-red-600' : 'text-gray-500'}`}>
+                {count}
+              </span>
+            )}
+          </div>
         </div>
         
         {/* Yıldızlar */}
@@ -499,6 +592,10 @@ function ReviewCard({ company, address, rating, review, date, username }: Review
         review={review}
         date={date}
         username={username}
+        commentId={commentId}
+        announceCount={count}
+        hasAnnounced={announced}
+        showToast={showToast}
       />
     </>
   );

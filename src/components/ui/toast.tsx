@@ -3,7 +3,7 @@
 import { CheckCircle, X, AlertCircle, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export type ToastType = "success" | "error" | "info";
+export type ToastType = "success" | "error" | "info" | "warning";
 
 interface ToastProps {
   message: string;
@@ -45,6 +45,8 @@ export function Toast({ message, type = "success", duration = 3000, onClose }: T
         return <AlertCircle className="h-5 w-5 text-red-600" />;
       case "info":
         return <Info className="h-5 w-5 text-blue-600" />;
+      case "warning":
+        return <AlertCircle className="h-5 w-5 text-amber-600" />;
       default:
         return <CheckCircle className="h-5 w-5 text-green-600" />;
     }
@@ -58,6 +60,8 @@ export function Toast({ message, type = "success", duration = 3000, onClose }: T
         return "bg-white border-red-200";
       case "info":
         return "bg-white border-blue-200";
+      case "warning":
+        return "bg-white border-amber-200";
       default:
         return "bg-white border-green-200";
     }
