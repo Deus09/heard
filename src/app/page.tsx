@@ -76,10 +76,12 @@ function HeroSection() {
       </p>
       
       {/* Ana Eylem Butonu */}
-      <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6  rounded-xl shadow-lg shadow-red-500/50 transition-all flex items-center space-x-2 mb-12">
-        <Plus className="h-5 w-5" />
-        <span>Yorum Ekle</span>
-      </button>
+      <a href="/add-review">
+        <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6  rounded-xl shadow-lg shadow-red-500/50 transition-all flex items-center space-x-2 mb-12">
+          <Plus className="h-5 w-5" />
+          <span>Yorum Ekle</span>
+        </button>
+      </a>
     </div>
   );
 }
