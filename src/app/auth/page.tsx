@@ -1,10 +1,11 @@
 "use client";
 
-import { Utensils, Menu, Mail, Lock, User } from "lucide-react";
+import { Menu, Mail, Lock, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth";
 import { useToast } from "@/components/ui/toast";
+import Image from "next/image";
 
 export default function AuthPage() {
   const { showToast, ToastContainer } = useToast();
@@ -250,8 +251,8 @@ function Header() {
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <a className="flex items-center gap-2" href="/">
-              <Utensils className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Heard!</span>
+              <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
+              <span className="font-semibold">Duyur!</span>
             </a>
           </div>
         </div>
@@ -264,8 +265,8 @@ function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <a className="flex items-center gap-2" href="/">
-            <Utensils className="h-5 w-5 text-primary" />
-            <span className="font-semibold">Heard!</span>
+            <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
+            <span className="font-semibold">Duyur!</span>
           </a>
         </div>
         <nav className="hidden md:flex items-center gap-6">

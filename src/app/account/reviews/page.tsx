@@ -1,8 +1,9 @@
 "use client";
 
-import { Utensils, Menu, AlertCircle, Trash2, Edit, MapPin, Calendar } from "lucide-react";
+import { Menu, AlertCircle, Trash2, Edit, MapPin, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function MyReviewsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -160,7 +161,7 @@ function ReviewsListPage() {
           <div className="bg-white rounded-lg shadow-lg p-12 text-center">
             <div className="mb-4 flex justify-center">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-                <Utensils className="h-8 w-8 text-gray-400" />
+                <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={32} height={32} className="h-8 w-8" />
               </div>
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -281,8 +282,8 @@ function Header() {
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <a className="flex items-center gap-2" href="/">
-              <Utensils className="h-5 w-5 text-primary" />
-              <span className="font-semibold">Heard!</span>
+              <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
+              <span className="font-semibold">Duyur!</span>
             </a>
           </div>
         </div>
@@ -295,8 +296,8 @@ function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <a className="flex items-center gap-2" href="/">
-            <Utensils className="h-5 w-5 text-primary" />
-            <span className="font-semibold">Heard!</span>
+            <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
+            <span className="font-semibold">Duyur!</span>
           </a>
         </div>
         <nav className="hidden md:flex items-center gap-6">

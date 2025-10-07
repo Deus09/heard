@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Map, List, ChevronDown, Search, Bookmark, Plus, ForkKnife, MapPin, Utensils, Menu } from "lucide-react";
+import { Star, Map, List, ChevronDown, Search, Bookmark, Plus, ForkKnife, MapPin, Menu } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ReviewDetailModal from "@/components/ReviewDetailModal";
