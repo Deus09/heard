@@ -23,12 +23,25 @@ function Header() {
 
   useEffect(() => {
     setIsMounted(true);
-    const user = localStorage.getItem("user");
-    setIsLoggedIn(!!user);
+    
+    // Supabase kullanıcısını kontrol et
+    import("@/services/auth").then(({ authService }) => {
+      authService.getCurrentUser().then(user => {
+        setIsLoggedIn(!!user);
+      });
+
+      // Auth state değişikliklerini dinle
+      const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
+        setIsLoggedIn(!!session?.user);
+      });
+
+      return () => subscription.unsubscribe();
+    });
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    const { authService } = await import("@/services/auth");
+    await authService.signOut();
     setIsLoggedIn(false);
     window.location.href = "/";
   };
@@ -189,6 +202,9 @@ function ViewToggle() {
 function ReviewsContainer() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
   const categories = [
     "Kafe Yorumları",
     "Ofis Yorumları",
@@ -209,6 +225,22 @@ function ReviewsContainer() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    loadComments();
+  }, []);
+
+  const loadComments = async () => {
+    try {
+      const { commentsService } = await import("@/services/comments");
+      const data = await commentsService.getComments();
+      setComments(data.slice(0, 6)); // İlk 6 yorumu göster
+    } catch (error) {
+      console.error('Yorumlar yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="mt-8">
       {/* Başlık ve Filtreleme */}
@@ -228,22 +260,29 @@ function ReviewsContainer() {
       </div>
       
       {/* İnceleme Kartları */}
-      <div className="grid grid-cols-2 gap-6">
-        <ReviewCard
-          company="The Cheesecake Factory"
-          address="115 Huntington Ave Suite 181, Boston, MA 02199, USA"
-          rating={3}
-          review="Bu mekan berbat. Tam bir lüks Applebees. Yemekler vasat ve pahalı, ama o lanet çizkekler harika. Restoran sürekli..."
-          date="06.01.2023"
-        />
-        <ReviewCard
-          company="Subway"
-          address="1101 4th St SW 4th Street Bldg, Unit 130, Washington, DC 20024, USA"
-          rating={4}
-          review="Bu lokasyonun sahibi (Luke) haftada bir çalışılan vardiya başına 2 öğüne kadar %50 indirim sağlıyor (indirim öncesi) öğün başına 20$'a kadar. Eğitim..."
-          date="10.02.2023"
-        />
-      </div>
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="animate-pulse text-gray-400">Yorumlar yükleniyor...</div>
+        </div>
+      ) : comments.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">Henüz yorum bulunmuyor.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {comments.map((comment) => (
+            <ReviewCard
+              key={comment.id}
+              company={comment.business_name}
+              address={`${comment.district}, ${comment.city}`}
+              rating={comment.rating}
+              review={comment.experience}
+              date={new Date(comment.created_at).toLocaleDateString("tr-TR")}
+              username={comment.username}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -254,9 +293,10 @@ interface ReviewCardProps {
   rating: number;
   review: string;
   date: string;
+  username?: string;
 }
 
-function ReviewCard({ company, address, rating, review, date }: ReviewCardProps) {
+function ReviewCard({ company, address, rating, review, date, username }: ReviewCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       {/* Üst Kısım: Restoran Adı ve Puan */}
@@ -289,8 +329,11 @@ function ReviewCard({ company, address, rating, review, date }: ReviewCardProps)
       {/* İnceleme Metni */}
       <p className="text-gray-900 mb-4 leading-relaxed">{review}</p>
       
-      {/* Tarih */}
-      <p className="text-xs text-gray-400">{date}</p>
+      {/* Alt Kısım: Kullanıcı ve Tarih */}
+      <div className="flex items-center justify-between text-xs text-gray-400">
+        <span>{username ? `@${username}` : 'Anonim'}</span>
+        <span>{date}</span>
+      </div>
     </div>
   );
 }

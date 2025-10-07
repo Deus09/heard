@@ -8,11 +8,11 @@ export default function MyReviewsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const router = useRouter();
 
-  // Kullanıcı girişini kontrol et (şimdilik localStorage kullanıyoruz)
+  // Kullanıcı girişini kontrol et
   useEffect(() => {
-    const checkAuth = () => {
-      // TODO: Gerçek auth sistemine bağlanacak
-      const user = localStorage.getItem("user");
+    const checkAuth = async () => {
+      const { authService } = await import("@/services/auth");
+      const user = await authService.getCurrentUser();
       setIsLoggedIn(!!user);
     };
     checkAuth();
@@ -81,39 +81,52 @@ function LoginRequiredPage() {
 }
 
 function ReviewsListPage() {
-  // Örnek veri (gerçek uygulamada API'den gelecek)
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      businessName: "Starbucks",
-      city: "İstanbul",
-      experience: "Çalışma ortamı oldukça iyi. Takım arkadaşlarım destekleyici ve yönetim anlayışlı. Mesai saatleri düzenli ve çalışan haklarına önem veriliyor. Özellikle eğitim programları çok faydalı.",
-      date: "2024-03-15",
-      status: "approved"
-    },
-    {
-      id: 2,
-      businessName: "McDonald's",
-      city: "Ankara",
-      experience: "İlk iş deneyimim için iyiydi ancak mesai saatleri biraz yoğun. Öğrenci için esnek çalışma saatleri sunmaları güzel. Ekip çalışması konusunda çok şey öğrendim.",
-      date: "2024-02-28",
-      status: "pending"
-    },
-    {
-      id: 3,
-      businessName: "Burger King",
-      city: "İzmir",
-      experience: "Hızlı tempolu bir çalışma ortamı. Stresli anlar olabiliyor ama takım çalışması güçlü. Maaş ödemeleri düzenli ve sigorta konusunda sorun yaşamadım.",
-      date: "2024-01-20",
-      status: "approved"
-    }
-  ]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (id: number) => {
-    if (confirm("Bu yorumu silmek istediğinize emin misiniz?")) {
-      setReviews(reviews.filter(review => review.id !== id));
+  useEffect(() => {
+    loadReviews();
+  }, []);
+
+  const loadReviews = async () => {
+    try {
+      const { commentsService } = await import("@/services/comments");
+      const { authService } = await import("@/services/auth");
+      
+      const user = await authService.getCurrentUser();
+      if (!user) return;
+
+      const data = await commentsService.getUserComments(user.id);
+      setReviews(data);
+    } catch (error) {
+      console.error('Yorumlar yüklenirken hata:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Bu yorumu silmek istediğinize emin misiniz?")) {
+      try {
+        const { commentsService } = await import("@/services/comments");
+        await commentsService.deleteComment(id);
+        setReviews(reviews.filter(review => review.id !== id));
+      } catch (error: any) {
+        alert(error.message || 'Yorum silinirken hata oluştu');
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Header />
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-pulse text-gray-400">Yorumlar yükleniyor...</div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusBadge = (status: string) => {
     if (status === "approved") {
@@ -173,9 +186,11 @@ function ReviewsListPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-bold text-gray-900">
-                        {review.businessName}
+                        {review.business_name}
                       </h3>
-                      {getStatusBadge(review.status)}
+                      <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                        Yayında
+                      </span>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       {review.city && (
@@ -186,7 +201,7 @@ function ReviewsListPage() {
                       )}
                       <div className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        <span>{new Date(review.date).toLocaleDateString("tr-TR")}</span>
+                        <span>{new Date(review.created_at).toLocaleDateString("tr-TR")}</span>
                       </div>
                     </div>
                   </div>
@@ -236,12 +251,26 @@ function Header() {
 
   useEffect(() => {
     setIsMounted(true);
-    const user = localStorage.getItem("user");
-    setIsLoggedIn(!!user);
+    
+    const checkAuth = async () => {
+      const { authService } = await import("@/services/auth");
+      const user = await authService.getCurrentUser();
+      setIsLoggedIn(!!user);
+
+      // Auth state değişikliklerini dinle
+      const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
+        setIsLoggedIn(!!session?.user);
+      });
+
+      return () => subscription.unsubscribe();
+    };
+    
+    checkAuth();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    const { authService } = await import("@/services/auth");
+    await authService.signOut();
     setIsLoggedIn(false);
     window.location.href = "/";
   };

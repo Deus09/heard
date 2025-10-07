@@ -1,32 +1,61 @@
 "use client";
 
-import { Utensils, Menu, Mail, Lock } from "lucide-react";
+import { Utensils, Menu, Mail, Lock, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { authService } from "@/services/auth";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     email: "",
-    password: ""
+    password: "",
+    username: ""
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Basit bir giriş simülasyonu (gerçek uygulamada API kullanılacak)
-    const user = {
-      email: formData.email,
-      name: formData.email.split("@")[0],
-      loggedInAt: new Date().toISOString()
+  // Zaten giriş yapmışsa ana sayfaya yönlendir
+  useEffect(() => {
+    const checkUser = async () => {
+      const user = await authService.getCurrentUser();
+      if (user) {
+        router.push("/");
+      }
     };
-    
-    // LocalStorage'a kaydet
-    localStorage.setItem("user", JSON.stringify(user));
-    
-    // Yorumlarım sayfasına yönlendir
-    router.push("/account/reviews");
+    checkUser();
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        // Giriş yap
+        await authService.signIn(formData.email, formData.password);
+        router.push("/");
+      } else {
+        // Kayıt ol
+        if (!formData.username.trim()) {
+          setError("Kullanıcı adı gereklidir");
+          setLoading(false);
+          return;
+        }
+        
+        await authService.signUp(formData.email, formData.password, formData.username);
+        // Email doğrulama mesajı göster
+        alert("Kayıt başarılı! Lütfen email adresinizi kontrol edin ve hesabınızı doğrulayın.");
+        setIsLogin(true);
+      }
+    } catch (err: any) {
+      console.error("Auth error:", err);
+      setError(err.message || "Bir hata oluştu");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +64,7 @@ export default function AuthPage() {
       ...prev,
       [name]: value
     }));
+    setError(""); // Hata mesajını temizle
   };
 
   return (
@@ -54,6 +84,38 @@ export default function AuthPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+          {/* Hata mesajı */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Kullanıcı Adı (sadece kayıt için) */}
+          {!isLogin && (
+            <div>
+              <label htmlFor="username" className="block text-sm font-semibold text-gray-900 mb-2">
+                Kullanıcı Adı <span className="text-red-600">*</span>
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  required={!isLogin}
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="kullaniciadi"
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                />
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                Bu isim yorumlarınızda görünecektir.
+              </p>
+            </div>
+          )}
+
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
@@ -104,9 +166,10 @@ export default function AuthPage() {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-red-500/50 transition-all"
+              disabled={loading}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLogin ? "Giriş Yap" : "Kayıt Ol"}
+              {loading ? "İşleniyor..." : (isLogin ? "Giriş Yap" : "Kayıt Ol")}
             </button>
           </div>
 
@@ -118,7 +181,8 @@ export default function AuthPage() {
                 type="button"
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  setFormData({ email: "", password: "" });
+                  setFormData({ email: "", password: "", username: "" });
+                  setError("");
                 }}
                 className="ml-2 text-red-600 hover:text-red-700 font-semibold transition-colors"
               >
@@ -146,12 +210,22 @@ function Header() {
 
   useEffect(() => {
     setIsMounted(true);
-    const user = localStorage.getItem("user");
-    setIsLoggedIn(!!user);
+    
+    // Supabase kullanıcısını kontrol et
+    authService.getCurrentUser().then(user => {
+      setIsLoggedIn(!!user);
+    });
+
+    // Auth state değişikliklerini dinle
+    const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    await authService.signOut();
     setIsLoggedIn(false);
     window.location.href = "/";
   };

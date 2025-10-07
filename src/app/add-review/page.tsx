@@ -136,35 +136,33 @@ export default function AddReviewPage() {
     setShowConfirmModal(true);
   };
 
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = async () => {
     setIsSubmitting(true);
     setShowConfirmModal(false);
 
     try {
-      // Mevcut yorumları al
-      const existingReviews = localStorage.getItem('reviews');
-      const reviews = existingReviews ? JSON.parse(existingReviews) : [];
+      // Supabase'e yorumu kaydet
+      const { commentsService } = await import("@/services/comments");
+      const { authService } = await import("@/services/auth");
+      
+      // Kullanıcı giriş yapmış mı kontrol et
+      const user = await authService.getCurrentUser();
+      if (!user) {
+        showToast('Yorum eklemek için giriş yapmalısınız', 'error');
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 1500);
+        return;
+      }
 
-      // Yeni yorum oluştur
-      const newReview = {
-        id: Date.now().toString(),
-        businessName: formData.businessName,
-        city: formData.city,
-        district: formData.district,
-        experience: formData.experience,
-        rating: formData.rating,
-        createdAt: new Date().toISOString(),
-        status: 'approved' // Otomatik onaylandı (küfür kontrolünden geçti)
-      };
-
-      // Yeni yorumu ekle
-      reviews.push(newReview);
-
-      // LocalStorage'a kaydet
-      localStorage.setItem('reviews', JSON.stringify(reviews));
-
-      // Custom event dispatch et (aynı sekmedeki değişiklikleri bildirmek için)
-      window.dispatchEvent(new Event('reviewsUpdated'));
+      await commentsService.addComment(
+        formData.businessName,
+        formData.city,
+        formData.district,
+        formData.experience,
+        formData.rating,
+        false // Şimdilik anonim özelliği yok
+      );
 
       // Formu temizle
       setFormData({
@@ -182,9 +180,9 @@ export default function AddReviewPage() {
       setTimeout(() => {
         window.location.href = '/';
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Yorum eklenirken hata:', error);
-      showToast('Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
+      showToast(error.message || 'Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
     } finally {
       setIsSubmitting(false);
     }
