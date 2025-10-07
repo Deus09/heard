@@ -1,8 +1,9 @@
 "use client";
 
 import { Star, Map, List, ChevronDown, Search, Bookmark, Plus, ForkKnife, MapPin, Utensils, Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import ReviewDetailModal from "@/components/ReviewDetailModal";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -330,43 +331,87 @@ interface ReviewCardProps {
 }
 
 function ReviewCard({ company, address, rating, review, date, username }: ReviewCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    // Metnin 4 satırdan uzun olup olmadığını kontrol et
+    if (textRef.current) {
+      const lineHeight = parseFloat(getComputedStyle(textRef.current).lineHeight);
+      const maxHeight = lineHeight * 4;
+      const actualHeight = textRef.current.scrollHeight;
+      setIsTruncated(actualHeight > maxHeight);
+    }
+  }, [review]);
+
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      {/* Üst Kısım: Restoran Adı ve Puan */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-1">
-            <h3 className="text-lg font-bold text-gray-900">{company}</h3>
-            <span className="text-sm text-gray-400">{rating}/5</span>
+    <>
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        {/* Üst Kısım: Restoran Adı ve Puan */}
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <div className="flex items-center space-x-2 mb-1">
+              <h3 className="text-lg font-bold text-gray-900">{company}</h3>
+              <span className="text-sm text-gray-400">{rating}/5</span>
+            </div>
+            {/* Adres */}
+            <div className="flex items-start space-x-1">
+              <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-gray-500">{address}</p>
+            </div>
           </div>
-          {/* Adres */}
-          <div className="flex items-start space-x-1">
-            <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-gray-500">{address}</p>
-          </div>
+          {/* Sağ Üst İkon */}
+          <Bookmark className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" />
         </div>
-        {/* Sağ Üst İkon */}
-        <Bookmark className="h-5 w-5 text-gray-400 flex-shrink-0 ml-2" />
+        
+        {/* Yıldızlar */}
+        <div className="flex items-center mb-4">
+          {[...Array(5)].map((_, i) => (
+            <Star
+              key={i}
+              className={`h-5 w-5 ${i < rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300 fill-gray-300'}`}
+            />
+          ))}
+        </div>
+        
+        {/* İnceleme Metni */}
+        <div className="mb-4">
+          <p 
+            ref={textRef}
+            className={`text-gray-900 leading-relaxed ${isTruncated ? 'line-clamp-4' : ''}`}
+          >
+            {review}
+          </p>
+          {isTruncated && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-red-600 hover:text-red-700 font-medium text-sm mt-2 transition-colors"
+            >
+              Devamını oku
+            </button>
+          )}
+        </div>
+        
+        {/* Alt Kısım: Kullanıcı ve Tarih */}
+        <div className="flex items-center justify-between text-xs text-gray-400">
+          <span>{username ? `@${username}` : 'Anonim'}</span>
+          <span>{date}</span>
+        </div>
       </div>
-      
-      {/* Yıldızlar */}
-      <div className="flex items-center mb-4">
-        {[...Array(5)].map((_, i) => (
-          <Star
-            key={i}
-            className={`h-5 w-5 ${i < rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300 fill-gray-300'}`}
-          />
-        ))}
-      </div>
-      
-      {/* İnceleme Metni */}
-      <p className="text-gray-900 mb-4 leading-relaxed">{review}</p>
-      
-      {/* Alt Kısım: Kullanıcı ve Tarih */}
-      <div className="flex items-center justify-between text-xs text-gray-400">
-        <span>{username ? `@${username}` : 'Anonim'}</span>
-        <span>{date}</span>
-      </div>
-    </div>
+
+      {/* Modal */}
+      <ReviewDetailModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        company={company}
+        address={address}
+        rating={rating}
+        review={review}
+        date={date}
+        username={username}
+      />
+    </>
   );
 }
