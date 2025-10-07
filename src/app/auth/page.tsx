@@ -2,6 +2,7 @@
 
 import { Utensils, Menu, Mail, Lock } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,11 +10,23 @@ export default function AuthPage() {
     email: "",
     password: ""
   });
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Giriş/Kayıt işlemi burada yapılacak
-    console.log(isLogin ? "Giriş Yap:" : "Kayıt Ol:", formData);
+    
+    // Basit bir giriş simülasyonu (gerçek uygulamada API kullanılacak)
+    const user = {
+      email: formData.email,
+      name: formData.email.split("@")[0],
+      loggedInAt: new Date().toISOString()
+    };
+    
+    // LocalStorage'a kaydet
+    localStorage.setItem("user", JSON.stringify(user));
+    
+    // Yorumlarım sayfasına yönlendir
+    router.push("/account/reviews");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
