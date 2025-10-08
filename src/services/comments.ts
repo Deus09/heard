@@ -273,27 +273,68 @@ export const commentsService = {
     return commentsWithAnnounces
   },
 
-  // Sayfalı yorumları duyuru sayılarıyla birlikte al
+  // Sayfalı yorumları duyuru sayılarıyla birlikte al (OPTIMIZE EDİLMİŞ V2 - Paralel Sorgular)
   async getCommentsPaginatedWithAnnounces(page: number = 0, pageSize: number = 12, searchTerm?: string) {
-    const result = await this.getCommentsPaginated(page, pageSize, searchTerm)
+    const from = page * pageSize
+    const to = from + pageSize - 1
+    const user = await supabase.auth.getUser()
+    const userId = user.data.user?.id
+
+    // Yorumları al
+    let query = supabase
+      .from('comments')
+      .select('*', { count: 'exact' })
     
-    // Her yorum için duyuru sayısını ve kullanıcının duyurup duyurmadığını al
-    const commentsWithAnnounces = await Promise.all(
-      result.data.map(async (comment) => {
-        const announceCount = await this.getAnnounceCount(comment.id)
-        const hasAnnounced = await this.hasUserAnnounced(comment.id)
-        return {
-          ...comment,
-          announceCount,
-          hasAnnounced
-        }
-      })
-    )
+    // Arama terimi varsa filtreleme uygula
+    if (searchTerm && searchTerm.trim()) {
+      const term = `%${searchTerm.trim()}%`
+      query = query.or(`business_name.ilike.${term},city.ilike.${term},district.ilike.${term}`)
+    }
+    
+    query = query
+      .order('created_at', { ascending: false })
+      .range(from, to)
+    
+    const { data: comments, error, count } = await query
+    
+    if (error) throw error
+    if (!comments || comments.length === 0) {
+      return { data: [], count: count || 0, hasMore: false }
+    }
+
+    // Sadece bu yorumlar için duyuruları paralel al
+    const commentIds = comments.map(c => c.id)
+    const { data: announces } = await supabase
+      .from('announces')
+      .select('comment_id, user_identifier')
+      .in('comment_id', commentIds)
+    
+    // Duyuruları comment_id'ye göre grupla
+    const announcesByCommentId = (announces || []).reduce((acc, announce) => {
+      if (!acc[announce.comment_id]) {
+        acc[announce.comment_id] = []
+      }
+      acc[announce.comment_id].push(announce)
+      return acc
+    }, {} as Record<string, any[]>)
+    
+    // Veriyi birleştir
+    const transformedData = comments.map(comment => {
+      const commentAnnounces = announcesByCommentId[comment.id] || []
+      const announceCount = commentAnnounces.length
+      const hasAnnounced = userId ? commentAnnounces.some(a => a.user_identifier === userId) : false
+      
+      return {
+        ...comment,
+        announceCount,
+        hasAnnounced
+      }
+    })
     
     return {
-      data: commentsWithAnnounces,
-      count: result.count,
-      hasMore: result.hasMore
+      data: transformedData,
+      count: count || 0,
+      hasMore: count ? (from + pageSize) < count : false
     }
   },
 
@@ -321,12 +362,14 @@ export const commentsService = {
       .sort((a, b) => b.count - a.count)
   },
 
-  // Zaman filtresine göre yorumları duyuru sayılarıyla birlikte al
+  // Zaman filtresine göre yorumları duyuru sayılarıyla birlikte al (OPTIMIZE EDİLMİŞ V2 - Paralel Sorgular)
   async getCommentsWithAnnouncesFiltered(timeFilter: 'week' | 'month' | 'year' | 'all') {
+    const user = await supabase.auth.getUser()
+    const userId = user.data.user?.id
+
     let query = supabase
       .from('comments')
       .select('*')
-      .order('created_at', { ascending: false })
     
     // Zaman filtresini uygula
     if (timeFilter !== 'all') {
@@ -350,26 +393,43 @@ export const commentsService = {
       query = query.gte('created_at', startDate.toISOString())
     }
     
-    const { data, error } = await query
+    query = query.order('created_at', { ascending: false })
+    
+    const { data: comments, error } = await query
     
     if (error) throw error
+    if (!comments || comments.length === 0) return []
+
+    // Tüm yorumlar için duyuruları tek sorguda al
+    const commentIds = comments.map(c => c.id)
+    const { data: announces } = await supabase
+      .from('announces')
+      .select('comment_id, user_identifier')
+      .in('comment_id', commentIds)
     
-    const comments = data as Comment[]
+    // Duyuruları comment_id'ye göre grupla
+    const announcesByCommentId = (announces || []).reduce((acc, announce) => {
+      if (!acc[announce.comment_id]) {
+        acc[announce.comment_id] = []
+      }
+      acc[announce.comment_id].push(announce)
+      return acc
+    }, {} as Record<string, any[]>)
     
-    // Her yorum için duyuru sayısını ve kullanıcının duyurup duyurmadığını al
-    const commentsWithAnnounces = await Promise.all(
-      comments.map(async (comment) => {
-        const announceCount = await this.getAnnounceCount(comment.id)
-        const hasAnnounced = await this.hasUserAnnounced(comment.id)
-        return {
-          ...comment,
-          announceCount,
-          hasAnnounced
-        }
-      })
-    )
+    // Veriyi birleştir
+    const transformedData = comments.map(comment => {
+      const commentAnnounces = announcesByCommentId[comment.id] || []
+      const announceCount = commentAnnounces.length
+      const hasAnnounced = userId ? commentAnnounces.some(a => a.user_identifier === userId) : false
+      
+      return {
+        ...comment,
+        announceCount,
+        hasAnnounced
+      }
+    })
     
     // Duyuru sayısına göre azalan sırada sırala
-    return commentsWithAnnounces.sort((a, b) => b.announceCount - a.announceCount)
+    return transformedData.sort((a, b) => b.announceCount - a.announceCount)
   }
 }

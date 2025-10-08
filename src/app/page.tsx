@@ -4,6 +4,7 @@ import { Star, Map, List, ChevronDown, Search, Bookmark, Plus, ForkKnife, MapPin
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ReviewDetailModal from "@/components/ReviewDetailModal";
+import ReviewCardSkeleton from "@/components/ReviewCardSkeleton";
 import { useToast } from "@/components/ui/toast";
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -140,7 +141,14 @@ function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Link className="flex items-center gap-2" href="/">
-            <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
+            <Image 
+              src="/favicon/favicon-32x32.png" 
+              alt="Duyur!" 
+              width={20} 
+              height={20} 
+              className="h-5 w-5"
+              priority
+            />
             <span className="font-semibold">Duyur!</span>
           </Link>
         </div>
@@ -209,7 +217,14 @@ function HeroSection() {
     <div className="flex flex-col items-center py-12">
       {/* Büyük Logo ve Slogan */}
       <div className="flex items-center space-x-3 mb-2">
-        <Image src="/favicon/android-chrome-192x192.png" alt="Duyur!" width={48} height={48} className="h-12 w-12" />
+        <Image 
+          src="/favicon/android-chrome-192x192.png" 
+          alt="Duyur!" 
+          width={48} 
+          height={48} 
+          className="h-12 w-12"
+          priority
+        />
         <h1 className="text-6xl font-extrabold text-red-600">Duyur!</h1>
       </div>
       <p className="text-md text-gray-500 mb-6">
@@ -286,7 +301,7 @@ function SearchBar({ searchTerm, onSearchChange, onSearch, onClearSearch }: { se
     }, 3000); // Her 3 saniyede bir değişir
 
     return () => clearInterval(interval);
-  }, []);
+  }, [placeholders.length]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
@@ -442,17 +457,18 @@ function ReviewsContainer({ searchTerm, showToast, selectedCity }: { searchTerm:
     }, 2000); // 2 saniyede bir değişir
 
     return () => clearInterval(interval);
-  }, []);
+  }, [categories.length]);
 
   // searchTerm değiştiğinde listeyi sıfırla ve ilk sayfayı yükle
   useEffect(() => {
-    // Eğer arama temizleniyorsa (boş string) ve cache varsa, cache'i kullan
+    // Eğer arama temizleniyorsa (boş string) ve cache varsa, önce cache'i göster
     if (!searchTerm && typeof window !== 'undefined') {
       const cached = localStorage.getItem('cached_comments');
       if (cached) {
         try {
           const cachedData = JSON.parse(cached);
           setComments(cachedData);
+          setLoading(false); // Cache'den yükledik, loading'i false yap
         } catch (e) {
           setComments([]);
         }
@@ -465,18 +481,23 @@ function ReviewsContainer({ searchTerm, showToast, selectedCity }: { searchTerm:
     
     setPage(0);
     setHasMore(true);
-    loadComments(0, true);
+    
+    // Cache varsa ve arama yoksa, arka planda güncelle
+    const shouldShowCache = !searchTerm && typeof window !== 'undefined' && localStorage.getItem('cached_comments');
+    loadComments(0, !shouldShowCache);
   }, [searchTerm]);
 
   // Infinite scroll için Intersection Observer
   useEffect(() => {
+    if (!hasMore || loading || loadingMore) return;
+    
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+        if (entries[0].isIntersecting) {
           loadMoreComments();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1, rootMargin: '100px' }
     );
 
     const currentTarget = observerTarget.current;
@@ -489,7 +510,7 @@ function ReviewsContainer({ searchTerm, showToast, selectedCity }: { searchTerm:
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, loading, loadingMore, page]);
+  }, [hasMore, loading, loadingMore]);
 
   const loadComments = async (pageNum: number, isInitial: boolean = false) => {
     if (isInitial) {
@@ -505,14 +526,16 @@ function ReviewsContainer({ searchTerm, showToast, selectedCity }: { searchTerm:
       if (isInitial) {
         setComments(result.data);
         
-        // İlk 4 yorumu localStorage'a kaydet (sadece arama yoksa)
+        // LocalStorage kaydını async yap - main thread'i bloklamaz
         if (!searchTerm && result.data.length > 0) {
-          const firstFour = result.data.slice(0, 4);
-          try {
-            localStorage.setItem('cached_comments', JSON.stringify(firstFour));
-          } catch (e) {
-            console.warn('localStorage kayıt hatası:', e);
-          }
+          setTimeout(() => {
+            const firstFour = result.data.slice(0, 4);
+            try {
+              localStorage.setItem('cached_comments', JSON.stringify(firstFour));
+            } catch (e) {
+              console.warn('localStorage kayıt hatası:', e);
+            }
+          }, 0);
         }
       } else {
         setComments(prev => [...prev, ...result.data]);
@@ -564,8 +587,10 @@ function ReviewsContainer({ searchTerm, showToast, selectedCity }: { searchTerm:
       
       {/* İnceleme Kartları */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-pulse text-gray-400">Yorumlar yükleniyor...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <ReviewCardSkeleton key={i} />
+          ))}
         </div>
       ) : comments.length === 0 ? (
         <div className="text-center py-12">
@@ -629,7 +654,6 @@ interface ReviewCardProps {
 }
 
 function ReviewCard({ company, address, rating, review, date, username, commentId, announceCount = 0, hasAnnounced = false, showToast }: ReviewCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [announced, setAnnounced] = useState(hasAnnounced);
@@ -708,7 +732,7 @@ function ReviewCard({ company, address, rating, review, date, username, commentI
 
   return (
     <>
-      <div className="bg-white rounded-lg shadow-lg p-6">
+      <div className="bg-white rounded-lg shadow-lg p-6 min-h-[280px] flex flex-col">
         {/* Üst Kısım: Restoran Adı ve Puan */}
         <div className="flex justify-between items-start mb-3">
           <div className="flex-1">
@@ -736,6 +760,7 @@ function ReviewCard({ company, address, rating, review, date, username, commentI
                 width={24} 
                 height={24} 
                 className={`transition-all duration-200 ${announced ? '' : 'grayscale'}`}
+                loading="lazy"
               />
             </button>
             {count > 0 && (
@@ -757,7 +782,7 @@ function ReviewCard({ company, address, rating, review, date, username, commentI
         </div>
         
         {/* İnceleme Metni */}
-        <div className="mb-4">
+        <div className="mb-4 flex-grow min-h-[96px]">
           <p 
             ref={textRef}
             className={`text-gray-900 leading-relaxed ${isTruncated ? 'line-clamp-4' : ''}`}

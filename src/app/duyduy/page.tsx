@@ -4,6 +4,7 @@ import { Star, Plus, Menu, ChevronDown } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import ReviewDetailModal from "@/components/ReviewDetailModal";
+import ReviewCardSmallSkeleton from "@/components/ReviewCardSmallSkeleton";
 import { useToast } from "@/components/ui/toast";
 import { commentsService } from "@/services/comments";
 import Link from 'next/link'; // Sayfanın en üstüne ekle
@@ -104,7 +105,14 @@ function Header() {
       <div className="container mx-auto flex h-14 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <Link className="flex items-center gap-2" href="/">
-            <Image src="/favicon/favicon-32x32.png" alt="Duyur!" width={20} height={20} className="h-5 w-5" />
+            <Image 
+              src="/favicon/favicon-32x32.png" 
+              alt="Duyur!" 
+              width={20} 
+              height={20} 
+              className="h-5 w-5"
+              priority
+            />
             <span className="font-semibold">Duyur!</span>
           </Link> 
         </div>
@@ -188,7 +196,14 @@ function HeroSection({
     <div className="flex flex-col items-center py-12">
       {/* Büyük Logo ve Slogan */}
       <div className="flex items-center space-x-3 mb-2">
-        <Image src="/favicon/android-chrome-192x192.png" alt="Duyur!" width={48} height={48} className="h-12 w-12" />
+        <Image 
+          src="/favicon/android-chrome-192x192.png" 
+          alt="Duyur!" 
+          width={48} 
+          height={48} 
+          className="h-12 w-12"
+          priority
+        />
         <h1 className="text-6xl font-extrabold text-red-600">DuyDuy!!!</h1>
       </div>
       <p className="text-md text-gray-500 mb-6">
@@ -275,8 +290,10 @@ function ReviewsContainer({
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {[...Array(6)].map((_, i) => (
+          <ReviewCardSmallSkeleton key={i} />
+        ))}
       </div>
     );
   }
@@ -336,7 +353,7 @@ function ReviewCard({
 }) {
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all cursor-pointer relative group"
+      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all cursor-pointer relative group min-h-[280px] flex flex-col"
       onClick={onSelect}
     >
       {/* Duyur Butonu - Sağ üst köşe (Sadece görüntüleme - tıklanamaz) */}
@@ -351,6 +368,7 @@ function ReviewCard({
             width={24} 
             height={24}
             className={review.hasAnnounced ? "duyur-active" : "duyur-inactive"}
+            loading="lazy"
           />
         </div>
         {review.announceCount > 0 && (
@@ -381,7 +399,7 @@ function ReviewCard({
       </p>
 
       {/* Yorum */}
-      <p className="text-gray-700 mb-4 line-clamp-3">
+      <p className="text-gray-700 mb-4 line-clamp-3 flex-grow min-h-[72px]">
         {review.experience}
       </p>
 
