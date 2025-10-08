@@ -1,5 +1,17 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 🚀 Gerçek Kullanıcılara Hazır Hale Getirme
+
+Projeyi ilk kez yayına alırken test verilerini temizlemek için:
+
+1. **Supabase Veritabanını Temizle**
+   - `clear-test-data.sql` dosyasını Supabase SQL Editor'da çalıştır
+   - Detaylar için `CLEAR_TEST_DATA.md` dosyasına bak
+
+2. **Tarayıcı Önbelleğini Temizle**
+   - `/clear-cache` sayfasına git veya
+   - Tarayıcı console'da: `localStorage.removeItem('cached_comments')`
+
 ## Getting Started
 
 First, run the development server:

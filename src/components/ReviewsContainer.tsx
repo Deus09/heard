@@ -118,13 +118,19 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
           setComments(result.data);
           
           // LocalStorage kaydını async yap - main thread'i bloklamaz
-          if (!searchTerm && result.data.length > 0) {
+          if (!searchTerm) {
             setTimeout(() => {
-              const firstFour = result.data.slice(0, 4);
               try {
-                localStorage.setItem('cached_comments', JSON.stringify(firstFour));
+                if (result.data.length > 0) {
+                  // Yorum varsa ilk 4'ünü cache'le
+                  const firstFour = result.data.slice(0, 4);
+                  localStorage.setItem('cached_comments', JSON.stringify(firstFour));
+                } else {
+                  // Yorum yoksa cache'i temizle
+                  localStorage.removeItem('cached_comments');
+                }
               } catch (e) {
-                console.warn('localStorage kayıt hatası:', e);
+                console.warn('localStorage hatası:', e);
               }
             }, 0);
           }
@@ -197,10 +203,39 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
             ))}
           </div>
         ) : comments.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">
-              {searchTerm ? 'Arama kriterlerine uygun yorum bulunamadı.' : 'Henüz yorum bulunmuyor.'}
-            </p>
+          <div className="text-center py-16 px-4">
+            {searchTerm ? (
+              <div className="max-w-md mx-auto">
+                <div className="text-6xl mb-4">🔍</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Arama sonucu bulunamadı
+                </h3>
+                <p className="text-gray-500">
+                  Arama kriterlerine uygun yorum bulunamadı. Farklı bir arama terimi deneyin.
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-2xl mx-auto bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-8 shadow-sm border border-red-100">
+                <div className="text-6xl mb-6">👋</div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  Merhaba! İlk yorumu sen yapmak ister misin?
+                </h3>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Bu platform henüz yeni açıldı ve senin deneyimlerini duymayı çok isteriz! 
+                  Gittiğin bir kafe, çalıştığın bir ofis ya da alışveriş yaptığın bir mağaza hakkında 
+                  ilk yorumu yapan kişi sen ol. Diğer kullanıcılara yol göster! 🌟
+                </p>
+                <a 
+                  href="/add-review" 
+                  className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-8 py-3 rounded-lg transition-all transform hover:scale-105 shadow-md"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  İlk Yorumu Yap
+                </a>
+              </div>
+            )}
           </div>
         ) : (
           <>
