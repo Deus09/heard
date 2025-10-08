@@ -319,5 +319,57 @@ export const commentsService = {
     return Object.entries(cityCounts)
       .map(([city, count]) => ({ city, count }))
       .sort((a, b) => b.count - a.count)
+  },
+
+  // Zaman filtresine göre yorumları duyuru sayılarıyla birlikte al
+  async getCommentsWithAnnouncesFiltered(timeFilter: 'week' | 'month' | 'year' | 'all') {
+    let query = supabase
+      .from('comments')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    // Zaman filtresini uygula
+    if (timeFilter !== 'all') {
+      const now = new Date()
+      let startDate: Date
+      
+      if (timeFilter === 'week') {
+        // Bu haftanın başlangıcı (Pazartesi)
+        const day = now.getDay()
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1)
+        startDate = new Date(now.setDate(diff))
+        startDate.setHours(0, 0, 0, 0)
+      } else if (timeFilter === 'month') {
+        // Bu ayın başlangıcı
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+      } else {
+        // Bu yılın başlangıcı
+        startDate = new Date(now.getFullYear(), 0, 1)
+      }
+      
+      query = query.gte('created_at', startDate.toISOString())
+    }
+    
+    const { data, error } = await query
+    
+    if (error) throw error
+    
+    const comments = data as Comment[]
+    
+    // Her yorum için duyuru sayısını ve kullanıcının duyurup duyurmadığını al
+    const commentsWithAnnounces = await Promise.all(
+      comments.map(async (comment) => {
+        const announceCount = await this.getAnnounceCount(comment.id)
+        const hasAnnounced = await this.hasUserAnnounced(comment.id)
+        return {
+          ...comment,
+          announceCount,
+          hasAnnounced
+        }
+      })
+    )
+    
+    // Duyuru sayısına göre azalan sırada sırala
+    return commentsWithAnnounces.sort((a, b) => b.announceCount - a.announceCount)
   }
 }

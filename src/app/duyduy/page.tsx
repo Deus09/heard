@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Plus, Menu } from "lucide-react";
+import { Star, Plus, Menu, ChevronDown } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import ReviewDetailModal from "@/components/ReviewDetailModal";
@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/toast";
 import { commentsService } from "@/services/comments";
 import Link from 'next/link'; // Sayfanın en üstüne ekle
 
+type TimeFilter = 'week' | 'month' | 'year' | 'all';
 
 interface CommentWithAnnounce {
   id: string;
@@ -24,13 +25,14 @@ interface CommentWithAnnounce {
 
 export default function DuyDuyPage() {
   const { showToast, ToastContainer } = useToast();
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
       <main className="max-w-6xl mx-auto px-6 flex-grow">
-        <HeroSection />
-        <ReviewsContainer showToast={showToast} />
+        <HeroSection timeFilter={timeFilter} onFilterChange={setTimeFilter} />
+        <ReviewsContainer showToast={showToast} timeFilter={timeFilter} />
       </main>
       <Footer />
       <ToastContainer />
@@ -166,7 +168,22 @@ function Header() {
   );
 }
 
-function HeroSection() {
+function HeroSection({ 
+  timeFilter, 
+  onFilterChange 
+}: { 
+  timeFilter: TimeFilter; 
+  onFilterChange: (filter: TimeFilter) => void 
+}) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const filterLabels = {
+    week: 'Bu Hafta',
+    month: 'Bu Ay',
+    year: 'Bu Yıl',
+    all: 'Tüm Zamanlar'
+  };
+
   return (
     <div className="flex flex-col items-center py-12">
       {/* Büyük Logo ve Slogan */}
@@ -177,11 +194,64 @@ function HeroSection() {
       <p className="text-md text-gray-500 mb-6">
         En çok duyurulan yorumlar
       </p>
+
+      {/* Zaman Filtresi Dropdown */}
+      <div className="relative">
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="inline-flex items-center justify-between gap-3 px-6 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-red-600 transition-all shadow-sm min-w-[200px] group"
+        >
+          <span className="font-semibold text-gray-700 group-hover:text-red-600 transition-colors">
+            {filterLabels[timeFilter]}
+          </span>
+          <ChevronDown 
+            className={`h-5 w-5 text-gray-400 group-hover:text-red-600 transition-all ${
+              isDropdownOpen ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {isDropdownOpen && (
+          <>
+            {/* Overlay - dropdown dışına tıklandığında kapat */}
+            <div 
+              className="fixed inset-0 z-10"
+              onClick={() => setIsDropdownOpen(false)}
+            />
+            
+            {/* Dropdown Menü */}
+            <div className="absolute top-full mt-2 w-full bg-white border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden z-20">
+              {(Object.keys(filterLabels) as TimeFilter[]).map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => {
+                    onFilterChange(filter);
+                    setIsDropdownOpen(false);
+                  }}
+                  className={`w-full px-6 py-3 text-left font-medium transition-colors ${
+                    timeFilter === filter
+                      ? 'bg-red-50 text-red-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {filterLabels[filter]}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
-function ReviewsContainer({ showToast }: { showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void }) {
+function ReviewsContainer({ 
+  showToast, 
+  timeFilter 
+}: { 
+  showToast: (message: string, type?: 'success' | 'error' | 'info' | 'warning') => void;
+  timeFilter: TimeFilter;
+}) {
   const [comments, setComments] = useState<CommentWithAnnounce[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReview, setSelectedReview] = useState<CommentWithAnnounce | null>(null);
@@ -189,19 +259,15 @@ function ReviewsContainer({ showToast }: { showToast: (message: string, type?: '
   const loadComments = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await commentsService.getCommentsWithAnnounces();
-      
-      // Duyuru sayısına göre azalan sırada sırala
-      const sortedData = data.sort((a, b) => b.announceCount - a.announceCount);
-      
-      setComments(sortedData);
+      const data = await commentsService.getCommentsWithAnnouncesFiltered(timeFilter);
+      setComments(data);
     } catch (error) {
       console.error('Yorumlar yüklenirken hata:', error);
       showToast('Yorumlar yüklenirken bir hata oluştu', 'error');
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [showToast, timeFilter]);
 
   useEffect(() => {
     loadComments();
