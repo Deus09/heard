@@ -1,6 +1,23 @@
 import { supabase } from '@/lib/supabase'
 
 export const authService = {
+  // Kullanıcı adının müsait olup olmadığını kontrol et
+  async checkUsernameAvailability(username: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', username)
+      .maybeSingle()
+    
+    if (error) {
+      console.error('Username check error:', error)
+      return false
+    }
+    
+    // Eğer data null ise, username müsait demektir
+    return data === null
+  },
+
   // Kayıt ol
   async signUp(email: string, password: string, username: string) {
     // Önce username'in kullanılıp kullanılmadığını kontrol et

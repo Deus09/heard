@@ -19,6 +19,9 @@ export default function AuthPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [usernameError, setUsernameError] = useState("");
   const router = useRouter();
 
   // Zaten giriş yapmışsa ana sayfaya yönlendir
@@ -31,6 +34,39 @@ export default function AuthPage() {
     };
     checkUser();
   }, [router]);
+
+  // Kullanıcı adı kontrolü için debounce
+  useEffect(() => {
+    if (isLogin || !formData.username) {
+      setUsernameAvailable(null);
+      setUsernameError("");
+      return;
+    }
+
+    // Min 4 karakter kontrolü
+    if (formData.username.length < 4) {
+      setUsernameAvailable(false);
+      setUsernameError("Kullanıcı adı en az 4 karakter olmalıdır");
+      return;
+    }
+
+    setUsernameError("");
+    setUsernameChecking(true);
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        const available = await authService.checkUsernameAvailability(formData.username);
+        setUsernameAvailable(available);
+      } catch (err) {
+        console.error("Username check error:", err);
+        setUsernameAvailable(false);
+      } finally {
+        setUsernameChecking(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.username, isLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,12 +161,40 @@ export default function AuthPage() {
                   value={formData.username}
                   onChange={handleChange}
                   placeholder="kullaniciadi"
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                  minLength={4}
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    formData.username.length > 0
+                      ? usernameError || (usernameAvailable === false && !usernameChecking)
+                        ? 'border-red-300 focus:ring-red-600'
+                        : usernameAvailable === true
+                        ? 'border-green-300 focus:ring-green-600'
+                        : 'border-gray-300 focus:ring-red-600'
+                      : 'border-gray-300 focus:ring-red-600'
+                  }`}
                 />
               </div>
-              <p className="mt-2 text-xs text-gray-500">
-                Bu isim yorumlarınızda görünecektir.
-              </p>
+              {/* Kullanıcı adı kontrol durumu */}
+              {formData.username.length > 0 && (
+                <div className="mt-2">
+                  {usernameChecking && (
+                    <p className="text-xs text-gray-500">Kontrol ediliyor...</p>
+                  )}
+                  {!usernameChecking && usernameError && (
+                    <p className="text-xs text-red-600">{usernameError}</p>
+                  )}
+                  {!usernameChecking && !usernameError && usernameAvailable === true && (
+                    <p className="text-xs text-green-600">✓ Kullanıcı adı müsait</p>
+                  )}
+                  {!usernameChecking && !usernameError && usernameAvailable === false && (
+                    <p className="text-xs text-red-600">✗ Bu kullanıcı adı daha önce alınmış</p>
+                  )}
+                </div>
+              )}
+              {formData.username.length === 0 && (
+                <p className="mt-2 text-xs text-gray-500">
+                  En az 4 karakter. Bu isim yorumlarınızda görünecektir.
+                </p>
+              )}
             </div>
           )}
 
@@ -184,7 +248,7 @@ export default function AuthPage() {
           <div className="pt-4">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!isLogin && (usernameAvailable !== true || formData.username.length < 4))}
               className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "İşleniyor..." : (isLogin ? "Giriş Yap" : "Kayıt Ol")}
@@ -201,6 +265,9 @@ export default function AuthPage() {
                   setIsLogin(!isLogin);
                   setFormData({ email: "", password: "", username: "" });
                   setError("");
+                  setUsernameAvailable(null);
+                  setUsernameError("");
+                  setUsernameChecking(false);
                 }}
                 className="ml-2 text-red-600 hover:text-red-700 font-semibold transition-colors"
               >
