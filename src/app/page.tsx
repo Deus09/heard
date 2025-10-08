@@ -65,7 +65,12 @@ export default function Home() {
             onViewModeChange={setViewMode}
           />
           {viewMode === "list" ? (
-            <ReviewsContainer searchTerm={activeSearchTerm} showToast={showToast} selectedCity={selectedCity} />
+            <ReviewsContainer 
+              searchTerm={activeSearchTerm} 
+              showToast={showToast} 
+              selectedCity={selectedCity}
+              onClearCitySelection={handleClearSearch}
+            />
           ) : (
             <MapContainer onCityClick={handleCityClick} />
           )}

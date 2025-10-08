@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import ReviewCardSkeleton from "@/components/ReviewCardSkeleton";
 import ReviewCard from "@/components/ReviewCard";
 
-export default function ReviewsContainer({ searchTerm, showToast, selectedCity }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void; selectedCity: string | null }) {
+export default function ReviewsContainer({ searchTerm, showToast, selectedCity, onClearCitySelection }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void; selectedCity: string | null; onClearCitySelection?: () => void }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     const [comments, setComments] = useState<import('@/types').CommentWithAnnounces[]>(() => {
@@ -152,13 +152,26 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity }
         {/* Başlık ve Filtreleme */}
         <div className="flex justify-between items-center mb-6">
           {selectedCity ? (
-            <div>
-              <h2 className="text-3xl font-semibold text-gray-900">
-                {selectedCity} Yorumları
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {comments.length} yorum bulundu
-              </p>
+            <div className="flex items-start gap-4">
+              <div>
+                <h2 className="text-3xl font-semibold text-gray-900">
+                  {selectedCity} Yorumları
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {comments.length} yorum bulundu
+                </p>
+              </div>
+              {onClearCitySelection && (
+                <button
+                  onClick={onClearCitySelection}
+                  className="mt-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Tümünü Gör
+                </button>
+              )}
             </div>
           ) : (
             <h2 className="text-3xl font-semibold text-gray-900">
