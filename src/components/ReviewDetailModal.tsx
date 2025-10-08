@@ -142,10 +142,36 @@ export default function ReviewDetailModal({
         <div className="p-8">
           {/* Üst Kısım: İşletme Bilgileri */}
           <div className="mb-6">
-            <div className="flex justify-between items-start mb-2">
-              <h2 className="text-2xl font-bold text-gray-900 pr-8">
+            <div className="mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 pr-12">
                 {company}
               </h2>
+            </div>
+            <div className="flex items-start space-x-2 mb-4">
+              <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-gray-500">{address}</p>
+            </div>
+
+            {/* Yıldızlar, Puan ve Duyur Butonu */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-6 w-6 ${
+                        i < rating
+                          ? "text-amber-400 fill-amber-400"
+                          : "text-gray-300 fill-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-lg font-semibold text-gray-700">
+                  {rating}/5
+                </span>
+              </div>
+              
               {/* Duyur Butonu */}
               {commentId && (
                 <div className="flex flex-col items-center">
@@ -170,29 +196,6 @@ export default function ReviewDetailModal({
                   )}
                 </div>
               )}
-            </div>
-            <div className="flex items-start space-x-2 mb-4">
-              <MapPin className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-500">{address}</p>
-            </div>
-
-            {/* Yıldızlar ve Puan */}
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-6 w-6 ${
-                      i < rating
-                        ? "text-amber-400 fill-amber-400"
-                        : "text-gray-300 fill-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-lg font-semibold text-gray-700">
-                {rating}/5
-              </span>
             </div>
           </div>
 
