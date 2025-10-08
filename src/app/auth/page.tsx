@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth";
 import { useToast } from "@/components/ui/toast";
+import { validateEmail } from "@/lib/utils";
 import Image from "next/image";
 import Link from 'next/link'; // Sayfanın en üstüne ekle
 
@@ -22,6 +23,8 @@ export default function AuthPage() {
   const [usernameChecking, setUsernameChecking] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
   const [usernameError, setUsernameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [emailValid, setEmailValid] = useState<boolean | null>(null);
   const router = useRouter();
 
   // Zaten giriş yapmışsa ana sayfaya yönlendir
@@ -68,12 +71,33 @@ export default function AuthPage() {
     return () => clearTimeout(timeoutId);
   }, [formData.username, isLogin]);
 
+  // E-posta validasyonu
+  useEffect(() => {
+    if (!formData.email) {
+      setEmailError("");
+      setEmailValid(null);
+      return;
+    }
+
+    const validation = validateEmail(formData.email);
+    setEmailValid(validation.isValid);
+    setEmailError(validation.error || "");
+  }, [formData.email]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
+      // E-posta validasyonu
+      const emailValidation = validateEmail(formData.email);
+      if (!emailValidation.isValid) {
+        setError(emailValidation.error || "Geçersiz e-posta adresi");
+        setLoading(false);
+        return;
+      }
+
       if (isLogin) {
         // Giriş yap
         await authService.signIn(formData.email, formData.password);
@@ -212,10 +236,34 @@ export default function AuthPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="ornek@email.com"
-                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                placeholder="ornek@gmail.com"
+                className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                  formData.email.length > 0
+                    ? emailValid === false
+                      ? 'border-red-300 focus:ring-red-600'
+                      : emailValid === true
+                      ? 'border-green-300 focus:ring-green-600'
+                      : 'border-gray-300 focus:ring-red-600'
+                    : 'border-gray-300 focus:ring-red-600'
+                }`}
               />
             </div>
+            {/* E-posta validasyon durumu */}
+            {formData.email.length > 0 && (
+              <div className="mt-2">
+                {emailError && (
+                  <p className="text-xs text-red-600">{emailError}</p>
+                )}
+                {emailValid === true && (
+                  <p className="text-xs text-green-600">✓ Geçerli e-posta adresi</p>
+                )}
+              </div>
+            )}
+            {formData.email.length === 0 && (
+              <p className="mt-2 text-xs text-gray-500">
+                @ işareti ve geçerli domain içermelidir (örn: @gmail.com)
+              </p>
+            )}
           </div>
 
           {/* Şifre */}
@@ -248,7 +296,11 @@ export default function AuthPage() {
           <div className="pt-4">
             <button
               type="submit"
-              disabled={loading || (!isLogin && (usernameAvailable !== true || formData.username.length < 4))}
+              disabled={
+                loading || 
+                emailValid !== true || 
+                (!isLogin && (usernameAvailable !== true || formData.username.length < 4))
+              }
               className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-red-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "İşleniyor..." : (isLogin ? "Giriş Yap" : "Kayıt Ol")}
@@ -268,6 +320,8 @@ export default function AuthPage() {
                   setUsernameAvailable(null);
                   setUsernameError("");
                   setUsernameChecking(false);
+                  setEmailValid(null);
+                  setEmailError("");
                 }}
                 className="ml-2 text-red-600 hover:text-red-700 font-semibold transition-colors"
               >
