@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from 'next/link';
 import Image from "next/image";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 export default function Header() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
     useEffect(() => {
       setIsMounted(true);
@@ -117,11 +118,52 @@ export default function Header() {
                 </Link>
               )}
             </div>
-            <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" aria-label="Menüyü Aç" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="radix-:r0:" data-state="closed">
-              <Menu className="h-4 w-4" />
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 w-10" 
+              aria-label={isMobileMenuOpen ? "Menüyü Kapat" : "Menüyü Aç"} 
+              type="button"
+            >
+              {isMobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t">
+            <nav className="container mx-auto px-4 py-4 flex flex-col gap-4">
+              <Link 
+                href="/" 
+                className="text-foreground hover:text-primary transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Ana Sayfa
+              </Link>
+              <Link 
+                href="/duyduy" 
+                className="text-foreground hover:text-primary transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                DuyDuy!!!
+              </Link>
+              <Link 
+                href="/add-review" 
+                className="text-foreground hover:text-primary transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Yorum Ekle
+              </Link>
+              <Link 
+                href="/account/reviews" 
+                className="text-foreground hover:text-primary transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Yorumlarım
+              </Link>
+            </nav>
+          </div>
+        )}
       </header>
     );
   }
