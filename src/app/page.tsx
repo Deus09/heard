@@ -5,12 +5,23 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ReviewDetailModal from "@/components/ReviewDetailModal";
 import { useToast } from "@/components/ui/toast";
-import Link from 'next/link'; // Sayfanın en üstüne ekle
+import Link from 'next/link';
+import dynamic from 'next/dynamic';
 
+// TurkeyMap'i dinamik olarak yükle (SSR'yi devre dışı bırak)
+const TurkeyMap = dynamic(() => import('@/components/TurkeyMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-[600px] bg-gray-50 rounded-lg">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+    </div>
+  )
+});
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSearchTerm, setActiveSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const { showToast, ToastContainer } = useToast();
 
   const handleSearch = (value: string) => {
@@ -20,14 +31,20 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
-      <main className="max-w-6xl mx-auto px-6 flex-grow">
+      <main className={`mx-auto px-6 flex-grow ${viewMode === "list" ? "max-w-6xl" : "max-w-7xl"}`}>
         <HeroSection />
         <Controls 
           searchTerm={searchTerm} 
           onSearchChange={setSearchTerm}
           onSearch={handleSearch}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
-        <ReviewsContainer searchTerm={activeSearchTerm} showToast={showToast} />
+        {viewMode === "list" ? (
+          <ReviewsContainer searchTerm={activeSearchTerm} showToast={showToast} />
+        ) : (
+          <MapContainer />
+        )}
       </main>
       <Footer />
       <ToastContainer />
@@ -186,7 +203,19 @@ function HeroSection() {
   );
 }
 
-function Controls({ searchTerm, onSearchChange, onSearch }: { searchTerm: string; onSearchChange: (value: string) => void; onSearch: (value: string) => void }) {
+function Controls({ 
+  searchTerm, 
+  onSearchChange, 
+  onSearch,
+  viewMode,
+  onViewModeChange 
+}: { 
+  searchTerm: string; 
+  onSearchChange: (value: string) => void; 
+  onSearch: (value: string) => void;
+  viewMode: "list" | "map";
+  onViewModeChange: (mode: "list" | "map") => void;
+}) {
   return (
     <div className="space-y-6 mb-8">
       {/* Arama Çubuğu - Ortalanmış */}
@@ -198,7 +227,7 @@ function Controls({ searchTerm, onSearchChange, onSearch }: { searchTerm: string
       
       {/* Görünüm Seçici - Sağda */}
       <div className="flex justify-end">
-        <ViewToggle />
+        <ViewToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
       </div>
     </div>
   );
@@ -270,19 +299,77 @@ function SearchBar({ searchTerm, onSearchChange, onSearch }: { searchTerm: strin
   );
 }
 
-function ViewToggle() {
+function ViewToggle({ 
+  viewMode, 
+  onViewModeChange 
+}: { 
+  viewMode: "list" | "map"; 
+  onViewModeChange: (mode: "list" | "map") => void;
+}) {
   return (
     <div className="inline-flex border border-red-600 rounded-full overflow-hidden">
-      {/* Aktif: List View */}
-      <button className="bg-red-600 text-white py-2 px-4 flex items-center space-x-2">
+      {/* List View */}
+      <button 
+        onClick={() => onViewModeChange("list")}
+        className={`py-2 px-3 md:px-4 flex items-center space-x-1 md:space-x-2 transition-colors ${
+          viewMode === "list" 
+            ? "bg-red-600 text-white" 
+            : "bg-white text-red-600 hover:bg-red-50"
+        }`}
+      >
         <List className="h-4 w-4" />
-        <span>Liste Görünümü</span>
+        <span className="text-sm md:text-base">Liste Görünümü</span>
       </button>
-      {/* Pasif: Map View */}
-      <button className="bg-white text-red-600 py-2 px-4 flex items-center space-x-2 hover:bg-red-50 transition-colors">
+      {/* Map View */}
+      <button 
+        onClick={() => onViewModeChange("map")}
+        className={`py-2 px-3 md:px-4 flex items-center space-x-1 md:space-x-2 transition-colors ${
+          viewMode === "map" 
+            ? "bg-red-600 text-white" 
+            : "bg-white text-red-600 hover:bg-red-50"
+        }`}
+      >
         <Map className="h-4 w-4" />
-        <span>Harita Görünümü</span>
+        <span className="text-sm md:text-base">Harita Görünümü</span>
       </button>
+    </div>
+  );
+}
+
+function MapContainer() {
+  const [cityReviewCounts, setCityReviewCounts] = useState<Array<{ city: string; count: number }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCityReviewCounts = async () => {
+      try {
+        const { commentsService } = await import("@/services/comments");
+        const counts = await commentsService.getCityReviewCounts();
+        setCityReviewCounts(counts);
+      } catch (error) {
+        console.error('İl bazlı yorum sayıları yüklenirken hata:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCityReviewCounts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="inline-flex items-center space-x-2 text-gray-400">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+          <span>Harita yükleniyor...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-8 max-w-full">
+      <TurkeyMap reviewCounts={cityReviewCounts} />
     </div>
   );
 }

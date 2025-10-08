@@ -295,5 +295,29 @@ export const commentsService = {
       count: result.count,
       hasMore: result.hasMore
     }
+  },
+
+  // İl bazında yorum sayılarını al
+  async getCityReviewCounts() {
+    const { data, error } = await supabase
+      .from('comments')
+      .select('city')
+    
+    if (error) throw error
+    
+    // İl bazında grupla ve say
+    const cityCounts = (data as Comment[]).reduce((acc, comment) => {
+      const city = comment.city
+      if (!acc[city]) {
+        acc[city] = 0
+      }
+      acc[city]++
+      return acc
+    }, {} as Record<string, number>)
+    
+    // Array'e çevir ve sırala
+    return Object.entries(cityCounts)
+      .map(([city, count]) => ({ city, count }))
+      .sort((a, b) => b.count - a.count)
   }
 }
