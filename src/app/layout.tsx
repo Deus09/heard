@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Duyur! | Ana Sayfa",
+    default: "Duyur!",
     template: "%s | Duyur!",
   },
   description: "İş deneyimlerinizi anonim olarak paylaşın",
