@@ -121,7 +121,7 @@ function Header() {
             Ana Sayfa
           </Link> 
           <Link aria-current="page" className="text-primary hover:text-primary transition-colors" href="/duyduy">
-            DuyDuy!!!
+            DuydunMu?
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/add-review">
             Yorum Ekle
@@ -204,9 +204,9 @@ function HeroSection({
           className="h-12 w-12"
           priority
         />
-        <h1 className="text-6xl font-extrabold text-red-600">DuyDuy!!!</h1>
+        <h1 className="text-6xl font-extrabold text-red-600">DuydunMu?</h1>
       </div>
-      <p className="text-md text-gray-500 mb-6">
+      <p className="text-md text-gray-500 mt-2 mb-6">
         En çok duyurulan yorumlar
       </p>
 

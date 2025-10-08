@@ -72,7 +72,7 @@ export default function Header() {
               Ana Sayfa
             </Link> 
             <Link className="text-foreground hover:text-primary transition-colors" href="/duyduy">
-              DuyDuy!!!
+              DuydunMu?
             </Link> 
             <Link className="text-foreground hover:text-primary transition-colors" href="/add-review">
               Yorum Ekle
@@ -145,7 +145,7 @@ export default function Header() {
                 className="text-foreground hover:text-primary transition-colors py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                DuyDuy!!!
+                DuydunMu?
               </Link>
               <Link 
                 href="/add-review" 

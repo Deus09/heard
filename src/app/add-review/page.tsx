@@ -466,7 +466,7 @@ function Header() {
             Ana Sayfa
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/duyduy">
-            DuyDuy!!!
+            DuydunMu?
           </Link> 
           <Link aria-current="page" className="text-red-600 hover:text-red-600 transition-colors font-semibold" href="/add-review">
             Yorum Ekle

@@ -308,7 +308,7 @@ function Header() {
             Ana Sayfa
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/duyduy">
-            DuyDuy!!!
+            DuydunMu?
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/add-review">
             Yorum Ekle
@@ -376,7 +376,7 @@ function Header() {
             className="block text-foreground hover:text-primary transition-colors py-2"
             href="/duyduy"
           >
-            DuyDuy!!!
+            DuydunMu?
           </Link> 
           <Link
             className="block text-foreground hover:text-primary transition-colors py-2"
