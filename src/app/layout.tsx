@@ -44,20 +44,6 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <head>
-        {/* Google tag (gtag.js) */}
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-5Q20LLZB7R"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-5Q20LLZB7R');
-          `}
-        </Script>
         {/* Umami Analytics */}
         <Script
           defer
