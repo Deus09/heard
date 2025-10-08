@@ -53,7 +53,7 @@ export default function Home() {
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
       <main className={`mx-auto px-6 flex-grow ${viewMode === "list" ? "max-w-6xl" : "max-w-full"}`}>
-        <div className={viewMode === "list" ? "" : "max-w-[1400px] mx-auto"}>
+        <div className={viewMode === "list" ? "" : "max-w-[1600px] mx-auto px-4"}>
           <HeroSection />
           <Controls 
             searchTerm={searchTerm} 
@@ -393,7 +393,7 @@ function MapContainer({ onCityClick }: { onCityClick: (city: string) => void }) 
   }
 
   return (
-    <div className="mt-8 max-w-full">
+    <div className="mt-4 max-w-full">
       <TurkeyMap reviewCounts={cityReviewCounts} onCityClick={onCityClick} />
     </div>
   );

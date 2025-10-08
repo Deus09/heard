@@ -121,10 +121,10 @@ const cityCoordinates: Record<string, [number, number]> = {
 
 // Pin boyutu kategorileri
 const getPinSize = (count: number): number => {
-  if (count >= 50) return 20;
-  if (count >= 20) return 16;
-  if (count >= 5) return 12;
-  return 10;
+  if (count >= 50) return 24;
+  if (count >= 20) return 20;
+  if (count >= 5) return 16;
+  return 12;
 };
 
 // Pin rengi kategorileri
@@ -173,45 +173,45 @@ const TurkeyMap = ({ reviewCounts, onCityClick }: TurkeyMapProps) => {
   }
 
   return (
-    <div className="w-full mx-auto bg-white rounded-lg shadow-lg p-4 md:p-8">
+    <div className="w-full mx-auto bg-white rounded-xl shadow-2xl p-6 md:p-10">
       {/* Harita Başlığı ve Açıklama */}
-      <div className="mb-6 md:mb-8">
-        <h3 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-4">
+      <div className="mb-8 md:mb-10">
+        <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mb-5">
           İl Bazında Yorum Dağılımı
         </h3>
-        <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm md:text-base text-gray-600">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-amber-400"></div>
-            <span className="font-medium">1-4 yorum</span>
+        <div className="flex flex-wrap items-center gap-5 md:gap-8 text-base md:text-lg text-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-amber-400 shadow-md"></div>
+            <span className="font-semibold">1-4 yorum</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-amber-500"></div>
-            <span className="font-medium">5-19 yorum</span>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-amber-500 shadow-md"></div>
+            <span className="font-semibold">5-19 yorum</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-orange-600"></div>
-            <span className="font-medium">20-49 yorum</span>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-orange-600 shadow-md"></div>
+            <span className="font-semibold">20-49 yorum</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-red-600"></div>
-            <span className="font-medium">50+ yorum</span>
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-red-600 shadow-md"></div>
+            <span className="font-semibold">50+ yorum</span>
           </div>
         </div>
       </div>
 
-      {/* Harita */}
-      <div className="relative bg-gray-50 rounded-lg overflow-hidden">
+      {/* Harita - 16:9 aspect ratio */}
+      <div className="relative bg-gray-50 rounded-lg overflow-hidden" style={{ aspectRatio: "16/9" }}>
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{
-            scale: 2800,
+            scale: 3200,
             center: [35, 39],
           }}
-          width={1200}
-          height={750}
+          width={1600}
+          height={900}
           style={{
             width: "100%",
-            height: "auto",
+            height: "100%",
           }}
         >
           <ZoomableGroup
@@ -285,23 +285,23 @@ const TurkeyMap = ({ reviewCounts, onCityClick }: TurkeyMapProps) => {
                     <g className="pointer-events-none">
                       {/* Arka plan beyaz kutu */}
                       <rect
-                        x={-45}
-                        y={-displayPinSize - 38}
-                        width={90}
-                        height={32}
+                        x={-55}
+                        y={-displayPinSize - 45}
+                        width={110}
+                        height={38}
                         fill="white"
-                        rx={8}
+                        rx={10}
                         opacity={0.98}
                         style={{
-                          filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.25))",
+                          filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.3))",
                         }}
                       />
                       <text
                         textAnchor="middle"
-                        y={-displayPinSize - 25}
+                        y={-displayPinSize - 30}
                         style={{
                           fontFamily: "system-ui",
-                          fontSize: "15px",
+                          fontSize: "17px",
                           fontWeight: "700",
                           fill: "#1f2937",
                         }}
@@ -310,10 +310,10 @@ const TurkeyMap = ({ reviewCounts, onCityClick }: TurkeyMapProps) => {
                       </text>
                       <text
                         textAnchor="middle"
-                        y={-displayPinSize - 11}
+                        y={-displayPinSize - 14}
                         style={{
                           fontFamily: "system-ui",
-                          fontSize: "13px",
+                          fontSize: "15px",
                           fill: pinColor,
                           fontWeight: "600",
                         }}
@@ -330,16 +330,16 @@ const TurkeyMap = ({ reviewCounts, onCityClick }: TurkeyMapProps) => {
       </div>
 
       {/* Harita Kontrol Bilgisi */}
-      <div className="mt-6 space-y-2">
-        <div className="text-center text-xs md:text-sm text-gray-500 flex items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="mt-8 space-y-3">
+        <div className="text-center text-sm md:text-base text-gray-600 flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
           </svg>
-          <span className="hidden md:inline">Haritada gezinmek için tekerleği kullanabilir veya sürükleyebilirsiniz</span>
-          <span className="md:hidden">Haritayı sürükleyerek gezinin</span>
+          <span className="hidden md:inline font-medium">Haritada gezinmek için tekerleği kullanabilir veya sürükleyebilirsiniz</span>
+          <span className="md:hidden font-medium">Haritayı sürükleyerek gezinin</span>
         </div>
-        <div className="text-center text-xs md:text-sm text-red-600 font-medium flex items-center justify-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="text-center text-sm md:text-base text-red-600 font-semibold flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 md:h-6 md:w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" />
           </svg>
           <span>İl pinlerine tıklayarak o ile ait yorumları görebilirsiniz</span>
