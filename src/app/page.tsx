@@ -22,29 +22,53 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSearchTerm, setActiveSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const { showToast, ToastContainer } = useToast();
 
   const handleSearch = (value: string) => {
     setActiveSearchTerm(value);
+    // Manuel arama yapıldığında şehir seçimini temizle
+    if (value !== selectedCity) {
+      setSelectedCity(null);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setActiveSearchTerm("");
+    setSelectedCity(null);
+  };
+
+  const handleCityClick = (city: string) => {
+    setSelectedCity(city);
+    setViewMode("list");
+    setActiveSearchTerm(city);
+    // Sayfanın başına smooth scroll
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
-      <main className={`mx-auto px-6 flex-grow ${viewMode === "list" ? "max-w-6xl" : "max-w-7xl"}`}>
-        <HeroSection />
-        <Controls 
-          searchTerm={searchTerm} 
-          onSearchChange={setSearchTerm}
-          onSearch={handleSearch}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-        />
-        {viewMode === "list" ? (
-          <ReviewsContainer searchTerm={activeSearchTerm} showToast={showToast} />
-        ) : (
-          <MapContainer />
-        )}
+      <main className={`mx-auto px-6 flex-grow ${viewMode === "list" ? "max-w-6xl" : "max-w-full"}`}>
+        <div className={viewMode === "list" ? "" : "max-w-[1400px] mx-auto"}>
+          <HeroSection />
+          <Controls 
+            searchTerm={searchTerm} 
+            onSearchChange={setSearchTerm}
+            onSearch={handleSearch}
+            onClearSearch={handleClearSearch}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
+          {viewMode === "list" ? (
+            <ReviewsContainer searchTerm={activeSearchTerm} showToast={showToast} selectedCity={selectedCity} />
+          ) : (
+            <MapContainer onCityClick={handleCityClick} />
+          )}
+        </div>
       </main>
       <Footer />
       <ToastContainer />
@@ -207,12 +231,14 @@ function Controls({
   searchTerm, 
   onSearchChange, 
   onSearch,
+  onClearSearch,
   viewMode,
   onViewModeChange 
 }: { 
   searchTerm: string; 
   onSearchChange: (value: string) => void; 
   onSearch: (value: string) => void;
+  onClearSearch: () => void;
   viewMode: "list" | "map";
   onViewModeChange: (mode: "list" | "map") => void;
 }) {
@@ -221,7 +247,7 @@ function Controls({
       {/* Arama Çubuğu - Ortalanmış */}
       <div className="flex justify-center">
         <div className="w-full max-w-lg">
-          <SearchBar searchTerm={searchTerm} onSearchChange={onSearchChange} onSearch={onSearch} />
+          <SearchBar searchTerm={searchTerm} onSearchChange={onSearchChange} onSearch={onSearch} onClearSearch={onClearSearch} />
         </div>
       </div>
       
@@ -233,7 +259,7 @@ function Controls({
   );
 }
 
-function SearchBar({ searchTerm, onSearchChange, onSearch }: { searchTerm: string; onSearchChange: (value: string) => void; onSearch: (value: string) => void }) {
+function SearchBar({ searchTerm, onSearchChange, onSearch, onClearSearch }: { searchTerm: string; onSearchChange: (value: string) => void; onSearch: (value: string) => void; onClearSearch: () => void }) {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   
   const placeholders = [
@@ -269,8 +295,7 @@ function SearchBar({ searchTerm, onSearchChange, onSearch }: { searchTerm: strin
   };
 
   const handleClear = () => {
-    onSearchChange("");
-    onSearch("");
+    onClearSearch();
   };
 
   return (
@@ -336,7 +361,7 @@ function ViewToggle({
   );
 }
 
-function MapContainer() {
+function MapContainer({ onCityClick }: { onCityClick: (city: string) => void }) {
   const [cityReviewCounts, setCityReviewCounts] = useState<Array<{ city: string; count: number }>>([]);
   const [loading, setLoading] = useState(true);
 
@@ -369,12 +394,12 @@ function MapContainer() {
 
   return (
     <div className="mt-8 max-w-full">
-      <TurkeyMap reviewCounts={cityReviewCounts} />
+      <TurkeyMap reviewCounts={cityReviewCounts} onCityClick={onCityClick} />
     </div>
   );
 }
 
-function ReviewsContainer({ searchTerm, showToast }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void }) {
+function ReviewsContainer({ searchTerm, showToast, selectedCity }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void; selectedCity: string | null }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [comments, setComments] = useState<import('@/types').CommentWithAnnounces[]>(() => {
@@ -512,15 +537,26 @@ function ReviewsContainer({ searchTerm, showToast }: { searchTerm: string; showT
     <div className="mt-8">
       {/* Başlık ve Filtreleme */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold text-gray-900">
-          <span 
-            className={`inline-block transition-all duration-300 ${
-              isAnimating ? "opacity-0 transform -translate-y-2" : "opacity-100 transform translate-y-0"
-            }`}
-          >
-            {categories[currentIndex]}
-          </span>
-        </h2>
+        {selectedCity ? (
+          <div>
+            <h2 className="text-3xl font-semibold text-gray-900">
+              {selectedCity} Yorumları
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              {comments.length} yorum bulundu
+            </p>
+          </div>
+        ) : (
+          <h2 className="text-3xl font-semibold text-gray-900">
+            <span 
+              className={`inline-block transition-all duration-300 ${
+                isAnimating ? "opacity-0 transform -translate-y-2" : "opacity-100 transform translate-y-0"
+              }`}
+            >
+              {categories[currentIndex]}
+            </span>
+          </h2>
+        )}
         <button className="bg-red-600 hover:bg-red-700 text-white p-3 rounded-full transition-colors">
           <ChevronDown className="h-5 w-5" />
         </button>
