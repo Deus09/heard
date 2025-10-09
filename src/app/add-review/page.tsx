@@ -6,7 +6,9 @@ import { useToast } from "@/components/ui/toast";
 import { containsProfanity, getProfanityWords } from "@/lib/profanityFilter";
 import ReviewConfirmModal from "@/components/ReviewConfirmModal";
 import Image from "next/image";
-import Link from 'next/link'; // Sayfanın en üstüne ekle
+import Link from 'next/link';
+import { useCSRF } from "@/contexts/CSRFContext";
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 
 // Şehir-İlçe verileri (tüm şehirler için)
@@ -96,6 +98,8 @@ const districtsByCity: { [key: string]: string[] } = {
 
 export default function AddReviewPage() {
   const { showToast, ToastContainer } = useToast();
+  const { csrfToken, isLoading: csrfLoading } = useCSRF();
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [formData, setFormData] = useState({
     businessName: "",
     city: "",
@@ -144,18 +148,55 @@ export default function AddReviewPage() {
     setShowConfirmModal(false);
 
     try {
-      // Supabase'e yorumu kaydet
-      const { commentsService } = await import("@/services/comments");
-      
-      // Kullanıcı giriş yapmamış olsa bile yorum ekleyebilir (anonim olarak)
-      await commentsService.addComment(
-        formData.businessName,
-        formData.city,
-        formData.district,
-        formData.experience,
-        formData.rating,
-        false
-      );
+      if (!csrfToken) {
+        showToast('Güvenlik tokeni yüklenemedi. Lütfen sayfayı yenileyin.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // reCAPTCHA token al (eğer yapılandırılmışsa)
+      let recaptchaToken: string | undefined;
+      if (executeRecaptcha) {
+        try {
+          recaptchaToken = await executeRecaptcha('submit_comment');
+        } catch (error) {
+          console.error('reCAPTCHA token alınamadı:', error);
+          showToast('Güvenlik doğrulaması başarısız. Lütfen tekrar deneyin.', 'error');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // API üzerinden yorum gönder
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          businessName: formData.businessName,
+          city: formData.city,
+          district: formData.district,
+          experience: formData.experience,
+          rating: formData.rating,
+          anonymous: false,
+          csrfToken,
+          recaptchaToken,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Rate limit hatası
+        if (response.status === 429) {
+          showToast(data.message || 'Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin.', 'error');
+          return;
+        }
+        
+        // Diğer hatalar
+        throw new Error(data.error || 'Yorum eklenirken bir hata oluştu');
+      }
 
       // Formu temizle
       setFormData({
@@ -413,11 +454,17 @@ export default function AddReviewPage() {
           <div className="pt-4">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || csrfLoading}
               className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg shadow-red-500/50 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="h-5 w-5" />
-              <span>{isSubmitting ? 'Gönderiliyor...' : 'Yorumu Gönder'}</span>
+              <span>
+                {csrfLoading 
+                  ? 'Yükleniyor...' 
+                  : isSubmitting 
+                    ? 'Gönderiliyor...' 
+                    : 'Yorumu Gönder'}
+              </span>
             </button>
           </div>
         </form>
