@@ -19,8 +19,7 @@ interface RecaptchaVerificationResponse {
  */
 export async function verifyRecaptcha(
   token: string,
-  expectedAction?: string,
-  options?: { remoteIp?: string }
+  expectedAction?: string
 ): Promise<{ success: boolean; score: number; message?: string }> {
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
@@ -39,22 +38,16 @@ export async function verifyRecaptcha(
   }
 
   try {
-    const params = new URLSearchParams({
-      secret: secretKey,
-      response: token,
-    });
-
-    if (options?.remoteIp) {
-      params.append('remoteip', options.remoteIp);
-    }
-
-    const response = await fetch(`https://www.google.com/recaptcha/api/siteverify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString(),
-    });
+    const response = await fetch(
+      `https://www.google.com/recaptcha/api/siteverify`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `secret=${secretKey}&response=${token}`,
+      }
+    );
 
     const data: RecaptchaVerificationResponse = await response.json();
 
@@ -79,47 +72,31 @@ export async function verifyRecaptcha(
 
     // Skor kontrolü - 0.5'in üzerindeki skorlar genellikle güvenilir kabul edilir
     // reCAPTCHA v3: 0.0 (bot olasılığı yüksek) - 1.0 (insan olasılığı yüksek)
-    let score = data.score || 0;
-
+    const score = data.score || 0;
+    
     // Çok esnek skor eşiği (0.1) - Production'da gerçek kullanıcılar düşük skor alabilir
     // Özellikle VPN, AdBlock veya gizlilik araçları kullananlar için
     const threshold = 0.1;
-
-    if (
-      data.success &&
-      score === 0 &&
-      (!data.action || data.action === 'undefined')
-    ) {
-      console.warn('⚠️ reCAPTCHA returned score 0 with undefined action - applying privacy fallback');
-      const fallbackScore = 0.2;
-      score = fallbackScore;
-    }
+    const isHuman = score >= threshold;
 
     console.log(`✅ reCAPTCHA verification result:`, {
       success: data.success,
-  score,
-  threshold,
-  isHuman: score >= threshold,
+      score,
+      threshold,
+      isHuman,
       action: data.action || 'undefined',
       expectedAction: expectedAction || 'none',
       hostname: data.hostname,
       timestamp: data.challenge_ts
     });
 
-    if (score < threshold) {
+    if (!isHuman) {
       console.warn(`⚠️ VERY Low reCAPTCHA score detected: ${score} (threshold: ${threshold})`);
       console.warn(`⚠️ This might be a bot, but could also be privacy tools`);
-      if (score < threshold && score > 0) {
-        return {
-          success: true,
-          score,
-          message: 'Low score - privacy tools suspected',
-        };
-      }
       return {
-        success: score >= threshold,
+        success: false,
         score,
-        message: score > 0 ? 'Low score - privacy tools suspected' : 'Suspicious activity detected',
+        message: 'Suspicious activity detected',
       };
     }
 
