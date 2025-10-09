@@ -20,10 +20,10 @@ export default function HeroSection() {
           <h1 className="text-6xl font-extrabold text-red-600">Duyur!</h1>
         </div>
         <p className="text-md text-gray-500 mb-2 mt-2">
-          İş deneyimlerinizi veya  günlük yaşadığınız olayları <span className="underline">anonim</span> olarak paylaşın
+          İş deneyimlerinizi veya mülakatlarınızı <span className="underline">anonim</span> olarak paylaşın
         </p>
         <p className="text-md text-gray-300 mb-8">
-          (E-Mail ile giriş gerektirmez)
+          (Giriş gerektirmez)
         </p>
 
         
