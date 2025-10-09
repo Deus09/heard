@@ -6,7 +6,13 @@ export default function Footer() {
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex flex-col items-center gap-2">
             <p className="text-sm text-gray-500">
-              Copyright © {new Date().getFullYear()} Duyur!
+              Copyright © {new Date().getFullYear()} Duyur! • İletişim:{" "}
+              <a 
+                href="mailto:info@duyur.social"
+                className="text-blue-500 hover:underline"
+              >
+                info@duyur.social
+              </a>
             </p>
             <p className="text-xs text-gray-400">
               Bu site reCAPTCHA ile korunmaktadır ve Google{" "}
