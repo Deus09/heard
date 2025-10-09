@@ -78,11 +78,9 @@ export async function verifyRecaptcha(
     // reCAPTCHA v3: 0.0 (bot olasılığı yüksek) - 1.0 (insan olasılığı yüksek)
     const score = data.score !== undefined ? data.score : 0;
     
-    // GEÇİCİ: Google Cloud "Protected" modu çok agresif olduğu için threshold 0.0
-    // Normal durumda 0.3-0.5 arası önerilir
-    // Google Cloud Console'dan "Protected" modunu düzenleyin: 
-    // https://console.cloud.google.com/security/recaptcha
-    const threshold = 0.0; // Tüm skorları kabul et (sadece token doğrulaması yap)
+    // Google Cloud Console'daki "Risky definition" ayarıyla uyumlu threshold
+    // Console'da 0.5 ayarlıysa, burada da aynı değeri kullanmalıyız
+    const threshold = 0.5; // Google Cloud Console ayarıyla uyumlu
     const isHuman = score >= threshold;
 
     console.log(`✅ reCAPTCHA verification result:`, {
@@ -94,22 +92,23 @@ export async function verifyRecaptcha(
       expectedAction: expectedAction || 'none',
       hostname: data.hostname,
       timestamp: data.challenge_ts,
-      note: 'Threshold 0.0 - accepting all valid tokens (Google Protected mode workaround)'
     });
 
-    // Score 0 bile olsa, token geçerliyse kabul et (Google Protected mode için)
-    if (score === 0) {
-      console.warn(`⚠️ reCAPTCHA score is 0 - Google Protected mode is blocking traffic`);
-      console.warn(`⚠️ Recommendation: Adjust settings in Google Cloud Console`);
-      console.warn(`⚠️ Meanwhile, accepting request since token is valid`);
+    // Düşük skor kontrolü
+    if (!isHuman) {
+      console.warn(`⚠️ reCAPTCHA score too low: ${score} (threshold: ${threshold})`);
+      return {
+        success: false,
+        score,
+        message: `reCAPTCHA score too low: ${score}`,
+      };
     }
 
     // Düşük skor uyarısı (ama geçiyor)
-    if (score < 0.5 && score > 0) {
-      console.warn(`⚠️ Low reCAPTCHA score but passing: ${score} (threshold: ${threshold})`);
+    if (score < 0.7 && score >= threshold) {
+      console.warn(`⚠️ reCAPTCHA score is acceptable but low: ${score} (threshold: ${threshold})`);
     }
 
-    // Token geçerli olduğu sürece kabul et
     return {
       success: true,
       score,
