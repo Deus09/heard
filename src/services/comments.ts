@@ -86,6 +86,7 @@ export const commentsService = {
   },
 
   // Yorum ekle (giriş yapmadan da eklenebilir)
+  // NOT: Bu fonksiyon client-side için, server-side'da API route kullanın
   async addComment(
     businessName: string,
     city: string,
@@ -94,73 +95,19 @@ export const commentsService = {
     rating: number,
     anonymous: boolean = false
   ) {
-    // Validasyon kontrolleri
-    if (!businessName || businessName.trim().length === 0) {
-      throw new Error('İş yeri adı boş olamaz')
-    }
-    if (businessName.length > 100) {
-      throw new Error('İş yeri adı en fazla 100 karakter olabilir')
-    }
-    if (!experience || experience.trim().length === 0) {
-      throw new Error('Deneyim açıklaması boş olamaz')
-    }
-    if (experience.length > 500) {
-      throw new Error('Deneyim açıklaması en fazla 500 karakter olabilir')
-    }
-    if (experience.trim().length < 20) {
-      throw new Error('Deneyim açıklaması en az 20 karakter olmalıdır')
-    }
-    if (rating < 1 || rating > 5) {
-      throw new Error('Puan 1 ile 5 arasında olmalıdır')
-    }
-    
-    const user = await supabase.auth.getUser()
-    
-    let userId: string | null = null
-    let username: string
-
-    if (user.data.user) {
-      // Kullanıcı giriş yapmış
-      userId = user.data.user.id
-
-      const profile = await supabase
-        .from('profiles')
-        .select('username')
-        .eq('id', user.data.user.id)
-        .single()
-
-      if (!profile.data) throw new Error('Profil bulunamadı')
-      username = anonymous ? 'Anonim' : profile.data.username
-    } else {
-      // Kullanıcı giriş yapmamış - rastgele username oluştur
-      username = await this.generateAnonymousUsername()
-    }
-
-    const { data, error } = await supabase
-      .from('comments')
-      .insert({
-        user_id: userId,
-        username,
-        business_name: businessName,
-        city,
-        district,
-        experience,
-        rating,
-        anonymous: !user.data.user ? true : anonymous
-      })
-      .select()
-      .single()
-    
-    if (error) throw error
-    return data as Comment
+    // Bu fonksiyon artık sadece client-side için - API'ye istek at
+    throw new Error('Bu fonksiyon client-side için kullanılamaz. API endpoint kullanın: POST /api/comments')
   },
 
   // Anonim kullanıcı için benzersiz username oluştur
   async generateAnonymousUsername() {
     const currentYear = new Date().getFullYear()
     
+    // Server-side client kullan
+    const serverSupabase = createServerClient()
+    
     // Bu yıl oluşturulan anonim yorumları say
-    const { count, error } = await supabase
+    const { count, error } = await serverSupabase
       .from('comments')
       .select('*', { count: 'exact', head: true })
       .like('username', `anon${currentYear}%`)

@@ -3,6 +3,150 @@ import { commentsService } from '@/services/comments';
 import { withRateLimit, RateLimitPresets } from '@/lib/rateLimit';
 import { verifyCSRFToken } from '@/lib/csrf';
 import { verifyRecaptcha, RecaptchaActions } from '@/lib/recaptcha';
+import { createClient } from '@supabase/supabase-js';
+import { cookies } from 'next/headers';
+import type { Comment } from '@/lib/supabaseClient';
+
+/**
+ * Server-side için auth destekli Supabase client oluştur
+ */
+async function createServerClientWithAuth() {
+  const cookieStore = await cookies()
+  const accessToken = cookieStore.get('sb-access-token')?.value
+  const refreshToken = cookieStore.get('sb-refresh-token')?.value
+  
+  const client = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    }
+  )
+  
+  // Eğer token varsa session'ı set et
+  if (accessToken && refreshToken) {
+    await client.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    })
+  }
+  
+  return client
+}
+
+/**
+ * Server-side için basit Supabase client
+ */
+function createServerClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    }
+  )
+}
+
+/**
+ * Anonim kullanıcı için benzersiz username oluştur
+ */
+async function generateAnonymousUsername(): Promise<string> {
+  const currentYear = new Date().getFullYear()
+  const serverSupabase = createServerClient()
+  
+  // Bu yıl oluşturulan anonim yorumları say
+  const { count, error } = await serverSupabase
+    .from('comments')
+    .select('*', { count: 'exact', head: true })
+    .like('username', `anon${currentYear}%`)
+  
+  if (error) throw error
+  
+  const commentCount = (count || 0) + 1
+  return `anon${currentYear}${commentCount}`
+}
+
+/**
+ * Yorum ekleme handler fonksiyonu
+ */
+async function addCommentHandler(
+  businessName: string,
+  city: string,
+  district: string,
+  experience: string,
+  rating: number,
+  anonymous: boolean = false,
+  request: Request
+): Promise<Comment> {
+  // Validasyon kontrolleri
+  if (!businessName || businessName.trim().length === 0) {
+    throw new Error('İş yeri adı boş olamaz')
+  }
+  if (businessName.length > 100) {
+    throw new Error('İş yeri adı en fazla 100 karakter olabilir')
+  }
+  if (!experience || experience.trim().length === 0) {
+    throw new Error('Deneyim açıklaması boş olamaz')
+  }
+  if (experience.length > 500) {
+    throw new Error('Deneyim açıklaması en fazla 500 karakter olabilir')
+  }
+  if (experience.trim().length < 20) {
+    throw new Error('Deneyim açıklaması en az 20 karakter olmalıdır')
+  }
+  if (rating < 1 || rating > 5) {
+    throw new Error('Puan 1 ile 5 arasında olmalıdır')
+  }
+  
+  // Server-side client oluştur (auth destekli)
+  const serverSupabase = await createServerClientWithAuth()
+  
+  const { data: userData, error: userError } = await serverSupabase.auth.getUser()
+  
+  let userId: string | null = null
+  let username: string
+
+  if (userData?.user) {
+    // Kullanıcı giriş yapmış
+    userId = userData.user.id
+
+    const { data: profile, error: profileError } = await serverSupabase
+      .from('profiles')
+      .select('username')
+      .eq('id', userData.user.id)
+      .single()
+
+    if (profileError || !profile) throw new Error('Profil bulunamadı')
+    username = anonymous ? 'Anonim' : profile.username
+  } else {
+    // Kullanıcı giriş yapmamış - rastgele username oluştur
+    username = await generateAnonymousUsername()
+  }
+
+  const { data, error } = await serverSupabase
+    .from('comments')
+    .insert({
+      user_id: userId,
+      username,
+      business_name: businessName,
+      city,
+      district,
+      experience,
+      rating,
+      anonymous: !userData?.user ? true : anonymous
+    })
+    .select()
+    .single()
+  
+  if (error) throw error
+  return data as Comment
+}
 
 /**
  * Yorum ekleme endpoint'i
@@ -141,14 +285,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6. Yorumu ekle
-    const comment = await commentsService.addComment(
+    // 6. Yorumu ekle (doğrudan API route'ta)
+    const comment = await addCommentHandler(
       businessName,
       city,
       district,
       experience,
       rating,
-      anonymous
+      anonymous,
+      request
     );
 
     // 7. Başarılı yanıt
