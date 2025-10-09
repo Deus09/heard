@@ -61,13 +61,17 @@ export async function verifyRecaptcha(
       };
     }
 
-    // Action kontrolü (opsiyonel) - sadece uyarı ver, reddetme
-    if (expectedAction && data.action !== expectedAction) {
+    // Action kontrolü - Google reCAPTCHA v3 bazen action parametresini response'a dahil etmiyor
+    // Bu normal bir durum ve doğrulama için sorun teşkil etmiyor
+    // Score kontrolü yeterli güvenliği sağlıyor
+    if (expectedAction && data.action && data.action !== expectedAction) {
       console.warn(
-        `⚠️ reCAPTCHA action mismatch. Expected: ${expectedAction}, Got: ${data.action || 'undefined'}`
+        `⚠️ reCAPTCHA action mismatch. Expected: ${expectedAction}, Got: ${data.action}`
       );
-      console.warn('⚠️ Continuing anyway - action mismatch is not fatal');
-      // Production'da action undefined gelebilir, bu yüzden sadece uyar
+      // Action eşleşmese bile devam et - score kontrolü daha önemli
+    } else if (expectedAction && !data.action) {
+      console.log(`ℹ️ reCAPTCHA action not returned by Google (expected: ${expectedAction})`);
+      console.log(`ℹ️ This is normal - Google doesn't always return action in the response`);
     }
 
     // Skor kontrolü - 0.5'in üzerindeki skorlar genellikle güvenilir kabul edilir

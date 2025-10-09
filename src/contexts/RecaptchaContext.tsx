@@ -43,10 +43,19 @@ export const RecaptchaProvider = ({ children }: { children: React.ReactNode }) =
           resolve(undefined);
           return;
         }
-        window.grecaptcha.execute(siteKey, { action: action })
+        
+        // Action parametresini loglayalım
+        console.log('🔵 Executing reCAPTCHA with action:', action);
+        
+        window.grecaptcha.execute(siteKey, { action })
           // 3. 'token' parametresine 'string' tipini ekliyoruz
           .then((token: string) => {
+            console.log('✅ reCAPTCHA token received, length:', token?.length);
             resolve(token);
+          })
+          .catch((error: Error) => {
+            console.error('❌ reCAPTCHA execution error:', error);
+            resolve(undefined);
           });
       });
     });

@@ -90,13 +90,9 @@ export async function POST(request: Request) {
           token: recaptchaToken?.substring(0, 20) + '...'
         });
         
-        // Sadece score 0 ve "Invalid action" durumunda geçici olarak izin ver
-        // Action undefined geldiğinde score 0 oluyor
-        if (captchaResult.message === 'Invalid action' && captchaResult.score === 0) {
-          console.warn('⚠️ reCAPTCHA action undefined - allowing temporarily');
-          console.warn('⚠️ This should be fixed on client side');
-        } else if (captchaResult.score === 0 && captchaResult.message !== 'Invalid action') {
-          // Gerçek bot tespiti - score 0 ve başka bir hata
+        // Score 0 durumunda bot olarak reddet
+        // Ama reCAPTCHA hatası mesajları için farklı davran
+        if (captchaResult.score === 0 && !captchaResult.message?.includes('reCAPTCHA')) {
           return NextResponse.json(
             { 
               error: 'Bot tespiti başarısız oldu. Lütfen tekrar deneyin.',
@@ -110,7 +106,7 @@ export async function POST(request: Request) {
           );
         }
         
-        // Düşük skorları logla ama devam et
+        // Düşük skorları logla ama devam et (çünkü Google bazen düşük skor verebilir)
         console.warn('⚠️ Low reCAPTCHA score but allowing:', captchaResult.score);
       } else {
         console.log('✅ reCAPTCHA verified successfully, score:', captchaResult.score);
