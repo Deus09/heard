@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth";
 import { useToast } from "@/components/ui/toast";
-import { validateEmail } from "@/lib/utils";
+import { validateEmail, validateUsername } from "@/lib/utils";
 import Image from "next/image";
 import Link from 'next/link'; // Sayfanın en üstüne ekle
 
@@ -46,10 +46,11 @@ export default function AuthPage() {
       return;
     }
 
-    // Min 4 karakter kontrolü
-    if (formData.username.length < 4) {
+    // Format kontrolü
+    const validation = validateUsername(formData.username);
+    if (!validation.isValid) {
       setUsernameAvailable(false);
-      setUsernameError("Kullanıcı adı en az 4 karakter olmalıdır");
+      setUsernameError(validation.error || "Geçersiz kullanıcı adı");
       return;
     }
 
@@ -216,7 +217,7 @@ export default function AuthPage() {
               )}
               {formData.username.length === 0 && (
                 <p className="mt-2 text-xs text-gray-500">
-                  En az 4 karakter. Bu isim yorumlarınızda görünecektir.
+                  4-20 karakter, harf ile başlamalı, sadece harf, rakam, _ ve - içerebilir
                 </p>
               )}
             </div>

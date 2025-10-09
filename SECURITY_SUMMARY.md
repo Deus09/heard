@@ -34,6 +34,15 @@
 
 📄 **Detay:** [CSRF_PROTECTION.md](./CSRF_PROTECTION.md)
 
+### 4. Input Validasyon ve Sanitization
+- ✅ Kullanıcı adı format validasyonu
+- ✅ E-posta format validasyonu
+- ✅ Küfür filtresi (yorumlar için)
+- ✅ SQL Injection koruması (alfanumerik + sınırlı karakterler)
+- ✅ XSS koruması (özel karakter kısıtlaması)
+
+📄 **Detay:** [USERNAME_VALIDATION.md](./USERNAME_VALIDATION.md)
+
 ---
 
 ## 📂 Yapılandırma Dosyaları
@@ -129,13 +138,14 @@ async headers() {
                               | CSRF (Cross-Site Request Forgery) | Double Submit + SameSite | ✅ |
                               | Clickjacking | X-Frame-Options: DENY | ✅ |
                               | MIME Sniffing | X-Content-Type-Options | ✅ |
-                              | Man-in-the-Middle | HSTS + HTTPS | ✅ |
-                              | SSL Stripping | HSTS | ✅ |
-                              | Data Leakage | Referrer-Policy | ✅ |
-                              | Feature Abuse | Permissions-Policy | ✅ |
-                              | Session Hijacking | Secure + HttpOnly cookies | ✅ |
-
-                              ---
+| Man-in-the-Middle | HSTS + HTTPS | ✅ |
+| SSL Stripping | HSTS | ✅ |
+| Data Leakage | Referrer-Policy | ✅ |
+| Feature Abuse | Permissions-Policy | ✅ |
+| Session Hijacking | Secure + HttpOnly cookies | ✅ |
+| SQL Injection | Input Validation + Parameterized Queries | ✅ |
+| Username Enumeration | Consistent error messages | ✅ |
+| Profanity/Spam | Content Filtering | ✅ |                              ---
 
                               ## 🚀 Deployment Checklist
 
@@ -166,16 +176,16 @@ async headers() {
 
                               ## 📚 Dokümantasyon
 
-                              ### Ana Dokümantasyonlar
-                              1. **[SECURITY_HEADERS.md](./SECURITY_HEADERS.md)** - HTTP güvenlik başlıkları detaylı rehber
-                              2. **[COOKIE_SECURITY.md](./COOKIE_SECURITY.md)** - Cookie güvenliği ve CSRF koruması
-                              3. **[CSRF_PROTECTION.md](./CSRF_PROTECTION.md)** - CSRF implementasyon detayları
+### Ana Dokümantasyonlar
+1. **[SECURITY_HEADERS.md](./SECURITY_HEADERS.md)** - HTTP güvenlik başlıkları detaylı rehber
+2. **[COOKIE_SECURITY.md](./COOKIE_SECURITY.md)** - Cookie güvenliği ve CSRF koruması
+3. **[CSRF_PROTECTION.md](./CSRF_PROTECTION.md)** - CSRF implementasyon detayları
+4. **[USERNAME_VALIDATION.md](./USERNAME_VALIDATION.md)** - Kullanıcı adı validasyon kuralları
 
-                              ### Diğer Güvenlik Dokümanları
-                              - [ANONYMOUS_COMMENTS.md](./ANONYMOUS_COMMENTS.md) - Anonim yorum sistemi
-                              - [PERFORMANCE_OPTIMIZATION_V2.md](./PERFORMANCE_OPTIMIZATION_V2.md) - Performans ve güvenlik
-
-                              ---
+### Diğer Güvenlik Dokümanları
+- [ANONYMOUS_COMMENTS.md](./ANONYMOUS_COMMENTS.md) - Anonim yorum sistemi
+- [USERNAME_VALIDATION_TESTS.md](./USERNAME_VALIDATION_TESTS.md) - Username validasyon test senaryoları
+- [PERFORMANCE_OPTIMIZATION_V2.md](./PERFORMANCE_OPTIMIZATION_V2.md) - Performans ve güvenlik                              ---
 
                               ## 🔄 Bakım
 
@@ -260,4 +270,3 @@ async headers() {
                               *Son güncelleme: 9 Ekim 2025*  
                               *Platform: Heard - Anonim Görüş Platformu*  
                               *Framework: Next.js 15 + Supabase*
-                              

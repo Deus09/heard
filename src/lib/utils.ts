@@ -62,3 +62,57 @@ export function validateEmail(email: string): { isValid: boolean; error?: string
 
   return { isValid: true };
 }
+
+// Kullanıcı adı doğrulama fonksiyonu
+export function validateUsername(username: string): { isValid: boolean; error?: string } {
+  // Boş kontrolü
+  if (!username.trim()) {
+    return { isValid: false, error: "Kullanıcı adı gereklidir" };
+  }
+
+  // Uzunluk kontrolü (minimum 4, maksimum 20 karakter)
+  if (username.length < 4) {
+    return { isValid: false, error: "Kullanıcı adı en az 4 karakter olmalıdır" };
+  }
+  
+  if (username.length > 20) {
+    return { isValid: false, error: "Kullanıcı adı en fazla 20 karakter olabilir" };
+  }
+
+  // Sadece harf, rakam, alt çizgi ve tire içerebilir
+  const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+  if (!usernameRegex.test(username)) {
+    return { isValid: false, error: "Kullanıcı adı sadece harf, rakam, alt çizgi (_) ve tire (-) içerebilir" };
+  }
+
+  // Harf ile başlamalı (rakam veya özel karakter ile başlamamalı)
+  if (!/^[a-zA-Z]/.test(username)) {
+    return { isValid: false, error: "Kullanıcı adı bir harf ile başlamalıdır" };
+  }
+
+  // Ardışık özel karakterler olmamalı (__ veya -- gibi)
+  if (/__{2,}|--{2,}/.test(username)) {
+    return { isValid: false, error: "Kullanıcı adı ardışık özel karakterler içeremez" };
+  }
+
+  // Özel karakter ile bitemez
+  if (/[_-]$/.test(username)) {
+    return { isValid: false, error: "Kullanıcı adı özel karakter ile bitemez" };
+  }
+
+  // Yasaklı kelimeler listesi
+  const forbiddenWords = [
+    'admin', 'administrator', 'moderator', 'mod', 'root', 'system', 
+    'anon', 'anonim', 'anonymous', 'user', 'guest', 'test', 'demo',
+    'null', 'undefined', 'deleted', 'banned', 'suspended'
+  ];
+
+  const lowerUsername = username.toLowerCase();
+  for (const word of forbiddenWords) {
+    if (lowerUsername.includes(word)) {
+      return { isValid: false, error: `Kullanıcı adı '${word}' kelimesini içeremez` };
+    }
+  }
+
+  return { isValid: true };
+}

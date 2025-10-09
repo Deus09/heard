@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient'
+import { validateUsername } from '@/lib/utils'
 
 export const authService = {
   // Kullanıcı adının müsait olup olmadığını kontrol et
@@ -20,6 +21,12 @@ export const authService = {
 
   // Kayıt ol
   async signUp(email: string, password: string, username: string) {
+    // Kullanıcı adı formatını kontrol et
+    const validation = validateUsername(username);
+    if (!validation.isValid) {
+      throw new Error(validation.error || 'Geçersiz kullanıcı adı');
+    }
+
     // Önce username'in kullanılıp kullanılmadığını kontrol et
     const { data: existingProfile } = await supabase
       .from('profiles')
