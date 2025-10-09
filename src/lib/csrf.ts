@@ -33,8 +33,18 @@ async function timingSafeEqual(a: string, b: string): Promise<boolean> {
  * NOT: Bu fonksiyon sadece API route'larında (Node.js runtime) kullanılabilir
  */
 export async function generateCSRFToken(): Promise<string> {
-  const token = await generateRandomToken();
   const cookieStore = await cookies();
+  
+  // Mevcut token'ı kontrol et
+  const existingToken = cookieStore.get(CSRF_TOKEN_NAME)?.value;
+  
+  // Eğer geçerli bir token varsa onu kullan
+  if (existingToken && existingToken.length === 64) {
+    return existingToken;
+  }
+  
+  // Yeni token oluştur
+  const token = await generateRandomToken();
   
   // CSRF token'ı httpOnly cookie olarak kaydet
   cookieStore.set(CSRF_TOKEN_NAME, token, {
@@ -54,6 +64,16 @@ export async function generateCSRFToken(): Promise<string> {
  */
 export async function verifyCSRFToken(token: string | null): Promise<boolean> {
   if (!token) {
+    console.error('CSRF verification failed: Token is null or undefined');
+    return false;
+  }
+
+  // Token formatını kontrol et (64 karakter hex olmalı)
+  if (token.length !== 64 || !/^[a-f0-9]{64}$/.test(token)) {
+    console.error('CSRF verification failed: Invalid token format', {
+      length: token.length,
+      preview: token.substring(0, 10) + '...'
+    });
     return false;
   }
 
@@ -61,11 +81,29 @@ export async function verifyCSRFToken(token: string | null): Promise<boolean> {
   const storedToken = cookieStore.get(CSRF_TOKEN_NAME)?.value;
 
   if (!storedToken) {
+    console.error('CSRF verification failed: No token found in cookies');
+    return false;
+  }
+
+  // Token uzunluklarını kontrol et
+  if (storedToken.length !== 64) {
+    console.error('CSRF verification failed: Stored token has invalid length', {
+      length: storedToken.length
+    });
     return false;
   }
 
   // Timing attack'a karşı güvenli karşılaştırma
-  return await timingSafeEqual(token, storedToken);
+  const isValid = await timingSafeEqual(token, storedToken);
+  
+  if (!isValid) {
+    console.error('CSRF verification failed: Token mismatch', {
+      receivedPreview: token.substring(0, 10) + '...',
+      storedPreview: storedToken.substring(0, 10) + '...'
+    });
+  }
+  
+  return isValid;
 }
 
 /**

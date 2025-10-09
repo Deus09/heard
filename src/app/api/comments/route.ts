@@ -39,16 +39,31 @@ export async function POST(request: Request) {
     const { businessName, city, district, experience, rating, anonymous, csrfToken, recaptchaToken } = body;
 
     // 3. CSRF token kontrolü
+    if (!csrfToken) {
+      console.error('CSRF token missing in request');
+      return NextResponse.json(
+        { error: 'Güvenlik tokeni bulunamadı. Lütfen sayfayı yenileyip tekrar deneyin.' },
+        { status: 403 }
+      );
+    }
+
     const csrfValid = await verifyCSRFToken(csrfToken);
     if (!csrfValid) {
+      console.error('CSRF token validation failed', { 
+        receivedToken: csrfToken?.substring(0, 10) + '...',
+        tokenLength: csrfToken?.length 
+      });
       return NextResponse.json(
         { error: 'Geçersiz güvenlik tokeni. Lütfen sayfayı yenileyip tekrar deneyin.' },
         { status: 403 }
       );
     }
 
-    // 4. reCAPTCHA doğrulaması (Production'da zorunlu)
-    if (process.env.NODE_ENV === 'production' || process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY) {
+    // 4. reCAPTCHA doğrulaması (Production'da zorunlu, development'ta opsiyonel)
+    const isProduction = process.env.NODE_ENV === 'production';
+    const recaptchaEnabled = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && process.env.RECAPTCHA_SECRET_KEY;
+    
+    if (isProduction && recaptchaEnabled) {
       if (!recaptchaToken) {
         return NextResponse.json(
           { error: 'reCAPTCHA doğrulaması gereklidir' },
@@ -76,6 +91,8 @@ export async function POST(request: Request) {
       if (captchaResult.score < 0.7) {
         console.log(`Low reCAPTCHA score but passing: ${captchaResult.score}`);
       }
+    } else if (!isProduction) {
+      console.log('🔧 Development mode: reCAPTCHA check skipped');
     }
 
     // 5. Validasyon
