@@ -38,6 +38,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     fetch: customFetch,
   },
+  auth: {
+    // Cookie ayarları - SameSite koruması
+    storageKey: 'heard-auth',
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+  },
 });
 
 // Database Types

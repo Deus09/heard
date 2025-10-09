@@ -1,4 +1,10 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Th## 🔒 Güvenlik
+
+Bu proje CSRF (Cross-Site Request Forgery) ve XSS saldırılarına karşı korunmaktadır.
+
+### Güvenlik Dokümantasyonu
+- **CSRF Koruması**: `CSRF_PROTECTION.md` dosyasına bakın
+- **Cookie Güvenliği**: `COOKIE_SECURITY.md` dosyasına bakın (SameSite ayarları, HttpOnly, Secure flags)is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## � Güvenlik
 
