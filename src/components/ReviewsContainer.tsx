@@ -1,11 +1,65 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, RefreshCw } from "lucide-react";
 import ReviewCardSkeleton from "@/components/ReviewCardSkeleton";
 import ReviewCard from "@/components/ReviewCard";
 
-export default function ReviewsContainer({ searchTerm, showToast, selectedCity, onClearCitySelection }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void; selectedCity: string | null; onClearCitySelection?: () => void }) {
+// Yenile butonu bileşeni
+function RefreshButton({ onRefresh }: { onRefresh?: () => void }) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [remainingTime, setRemainingTime] = useState(0);
+  const [canClick, setCanClick] = useState(true);
+
+  useEffect(() => {
+    if (remainingTime > 0) {
+      const timer = setTimeout(() => {
+        setRemainingTime(remainingTime - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (remainingTime === 0 && !canClick) {
+      setCanClick(true);
+    }
+  }, [remainingTime, canClick]);
+
+  const handleClick = () => {
+    if (!canClick || !onRefresh) return;
+
+    setIsRefreshing(true);
+    setCanClick(false);
+    setRemainingTime(30);
+    
+    onRefresh();
+    
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000);
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={!canClick}
+      className={`relative bg-red-600 text-white p-3 rounded-full transition-all ${
+        canClick 
+          ? 'hover:bg-red-700 cursor-pointer' 
+          : 'opacity-50 cursor-not-allowed'
+      }`}
+      title={canClick ? 'Yeni yorumları kontrol et' : `${remainingTime} saniye sonra tekrar deneyin`}
+    >
+      <RefreshCw 
+        className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} 
+      />
+      {remainingTime > 0 && (
+        <span className="absolute -top-1 -right-1 bg-white text-red-600 text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center border-2 border-red-600">
+          {remainingTime}
+        </span>
+      )}
+    </button>
+  );
+}
+
+export default function ReviewsContainer({ searchTerm, showToast, selectedCity, onClearCitySelection, onRefresh, lastRefreshTime }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void; selectedCity: string | null; onClearCitySelection?: () => void; onRefresh?: () => void; lastRefreshTime?: number }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     const [comments, setComments] = useState<import('@/types').CommentWithAnnounces[]>(() => {
@@ -27,6 +81,7 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const observerTarget = useRef<HTMLDivElement>(null);
+    const [latestCommentTime, setLatestCommentTime] = useState<string | null>(null);
     
     const PAGE_SIZE = 12;
     
@@ -117,6 +172,11 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
         if (isInitial) {
           setComments(result.data);
           
+          // En yeni yorumun zamanını kaydet
+          if (result.data.length > 0) {
+            setLatestCommentTime(result.data[0].created_at);
+          }
+          
           // LocalStorage kaydını async yap - main thread'i bloklamaz
           if (!searchTerm) {
             setTimeout(() => {
@@ -152,6 +212,46 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
       setPage(nextPage);
       loadComments(nextPage, false);
     };
+    
+    // Yeni yorumları kontrol et ve varsa listeye ekle
+    const checkForNewComments = async () => {
+      try {
+        const { commentsService } = await import("@/services/comments");
+        const result = await commentsService.getCommentsPaginatedWithAnnounces(0, PAGE_SIZE, searchTerm);
+        
+        if (result.data.length === 0) {
+          showToast("Henüz yeni yorum yok", "info");
+          return;
+        }
+        
+        // En son bilinen yorumdan daha yeni yorumlar var mı kontrol et
+        if (latestCommentTime && result.data[0].created_at > latestCommentTime) {
+          // Yeni yorumları filtrele
+          const newComments = result.data.filter(comment => comment.created_at > latestCommentTime);
+          
+          if (newComments.length > 0) {
+            // Yeni yorumları listenin başına ekle
+            setComments(prev => [...newComments, ...prev]);
+            setLatestCommentTime(result.data[0].created_at);
+            showToast(`${newComments.length} yeni yorum yüklendi`, "success");
+          } else {
+            showToast("Henüz yeni yorum yok", "info");
+          }
+        } else {
+          showToast("Henüz yeni yorum yok", "info");
+        }
+      } catch (error) {
+        console.error('Yeni yorumlar kontrol edilirken hata:', error);
+        showToast("Yeni yorumlar kontrol edilirken bir hata oluştu", "error");
+      }
+    };
+    
+    // lastRefreshTime değiştiğinde yeni yorumları kontrol et
+    useEffect(() => {
+      if (lastRefreshTime && lastRefreshTime > 0) {
+        checkForNewComments();
+      }
+    }, [lastRefreshTime]);
   
     return (
       <div className="mt-8">
@@ -190,9 +290,7 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
               </span>
             </h2>
           )}
-          <button className="bg-red-600 hover:bg-red-700 text-white p-3 rounded-full transition-colors">
-            <ChevronDown className="h-5 w-5" />
-          </button>
+          <RefreshButton onRefresh={onRefresh} />
         </div>
         
         {/* İnceleme Kartları */}

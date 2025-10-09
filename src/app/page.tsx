@@ -25,6 +25,8 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const { showToast, ToastContainer } = useToast();
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
+  const [canRefresh, setCanRefresh] = useState(true);
 
   const handleSearch = (value: string) => {
     setActiveSearchTerm(value);
@@ -50,6 +52,22 @@ export default function Home() {
     }, 100);
   };
 
+  const handleRefresh = () => {
+    if (!canRefresh) {
+      showToast("Lütfen 30 saniye bekleyin", "warning");
+      return;
+    }
+
+    // Yenileme işlemini tetikle
+    setLastRefreshTime(Date.now());
+    
+    // 30 saniye boyunca butonu devre dışı bırak
+    setCanRefresh(false);
+    setTimeout(() => {
+      setCanRefresh(true);
+    }, 30000);
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
@@ -63,6 +81,8 @@ export default function Home() {
             onClearSearch={handleClearSearch}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
+            onRefresh={handleRefresh}
+            lastRefreshTime={lastRefreshTime}
           />
           {viewMode === "list" ? (
             <ReviewsContainer 
@@ -70,6 +90,8 @@ export default function Home() {
               showToast={showToast} 
               selectedCity={selectedCity}
               onClearCitySelection={handleClearSearch}
+              onRefresh={handleRefresh}
+              lastRefreshTime={lastRefreshTime}
             />
           ) : (
             <MapContainer onCityClick={handleCityClick} />

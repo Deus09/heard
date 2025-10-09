@@ -9,7 +9,9 @@ export default function Controls({
     onSearch,
     onClearSearch,
     viewMode,
-    onViewModeChange 
+    onViewModeChange,
+    onRefresh,
+    lastRefreshTime
   }: { 
     searchTerm: string; 
     onSearchChange: (value: string) => void; 
@@ -17,6 +19,8 @@ export default function Controls({
     onClearSearch: () => void;
     viewMode: "list" | "map";
     onViewModeChange: (mode: "list" | "map") => void;
+    onRefresh?: () => void;
+    lastRefreshTime?: number;
   }) {
     return (
       <div className="space-y-6 mb-8">
