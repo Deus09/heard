@@ -7,6 +7,8 @@ const nextConfig = {
   
   // Güvenlik başlıkları
   async headers() {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
     return [
       {
         // Tüm route'lara güvenlik başlıkları ekle
@@ -22,7 +24,8 @@ const nextConfig = {
               "img-src 'self' data: blob: https:",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cloud.umami.is https://api-gateway.umami.dev https://www.google.com",
               "frame-src 'self' https://www.google.com",
-              "manifest-src 'self'",
+              // Development'ta GitHub Codespaces için manifest-src'yi gevşet
+              isDevelopment ? "manifest-src 'self' https://github.dev https://*.github.dev" : "manifest-src 'self'",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
