@@ -12,6 +12,8 @@ import { verifyRecaptcha, RecaptchaActions } from '@/lib/recaptcha';
  */
 export async function POST(request: Request) {
   try {
+    console.log('🔵 POST /api/comments - Request received');
+    
     // 1. Rate limiting kontrolü
     const rateLimit = await withRateLimit(request, RateLimitPresets.addComment);
     
@@ -38,9 +40,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { businessName, city, district, experience, rating, anonymous, csrfToken, recaptchaToken } = body;
 
+    console.log('🔵 CSRF Token from body:', csrfToken?.substring(0, 10) + '...', 'Length:', csrfToken?.length);
+
     // 3. CSRF token kontrolü
     if (!csrfToken) {
-      console.error('CSRF token missing in request');
+      console.error('❌ CSRF token missing in request');
       return NextResponse.json(
         { error: 'Güvenlik tokeni bulunamadı. Lütfen sayfayı yenileyip tekrar deneyin.' },
         { status: 403 }
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
 
     const csrfValid = await verifyCSRFToken(csrfToken);
     if (!csrfValid) {
-      console.error('CSRF token validation failed', { 
+      console.error('❌ CSRF token validation failed', { 
         receivedToken: csrfToken?.substring(0, 10) + '...',
         tokenLength: csrfToken?.length 
       });
@@ -58,6 +62,8 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
+
+    console.log('✅ CSRF token validated successfully');
 
     // 4. reCAPTCHA doğrulaması (Production'da zorunlu, development'ta opsiyonel)
     const isProduction = process.env.NODE_ENV === 'production';

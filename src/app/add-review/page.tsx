@@ -173,6 +173,7 @@ export default function AddReviewPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Cookie'leri gönder
         body: JSON.stringify({
           businessName: formData.businessName,
           city: formData.city,

@@ -2,28 +2,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Next.js Middleware - CSRF token kontrolü ve güvenlik başlıkları
- * Edge Runtime uyumlu basit kontrol
+ * Next.js Middleware - Güvenlik başlıkları
+ * CSRF kontrolü API route'larında yapılır (daha detaylı kontrol için)
  */
 export async function middleware(request: NextRequest) {
-  // API route'ları için CSRF header kontrolü (csrf-token endpoint hariç)
-  if (request.nextUrl.pathname.startsWith('/api/') && 
-      request.nextUrl.pathname !== '/api/csrf-token' &&
-      !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
-    
-    // CSRF token header'ını kontrol et
-    const csrfToken = request.headers.get('X-CSRF-Token');
-    const csrfCookie = request.cookies.get('csrf_token')?.value;
-
-    // Token yoksa veya eşleşmiyorsa reddet
-    if (!csrfToken || !csrfCookie || csrfToken !== csrfCookie) {
-      return NextResponse.json(
-        { error: 'Invalid CSRF token' },
-        { status: 403 }
-      );
-    }
-  }
-
   // Response oluştur ve güvenlik başlıklarını ekle
   const response = NextResponse.next();
   
