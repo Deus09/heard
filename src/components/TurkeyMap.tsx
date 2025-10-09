@@ -32,7 +32,7 @@ interface TurkeyMapProps {
   onCityClick: (city: string) => void;
 }
 
-const TURKEY_TOPOJSON_URL = "https://raw.githubusercontent.com/ttezer/PowerBi/refs/heads/main/%C4%B0ller/T%C3%BCrkiye_%C4%B0l.json";
+const TURKEY_TOPOJSON_URL = "/Türkiye_İl.json";
 
 // İl koordinatları (merkez noktaları)
 const cityCoordinates: Record<string, [number, number]> = {
