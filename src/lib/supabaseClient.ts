@@ -5,39 +5,9 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-/**
- * CSRF token'ı header'lara ekleyen özel fetch fonksiyonu
- */
-const customFetch: typeof fetch = async (input, init) => {
-  // CSRF token'ı cookie'den al
-  const response = await fetch('/api/csrf-token', {
-    credentials: 'include',
-  });
-  
-  let csrfToken = '';
-  if (response.ok) {
-    const data = await response.json();
-    csrfToken = data.csrfToken;
-  }
-
-  // Header'ları güncelle
-  const headers = new Headers(init?.headers);
-  if (csrfToken && init?.method && !['GET', 'HEAD', 'OPTIONS'].includes(init.method)) {
-    headers.set('X-CSRF-Token', csrfToken);
-  }
-
-  // Orijinal fetch'i çağır
-  return fetch(input, {
-    ...init,
-    headers,
-  });
-};
-
-// CSRF korumalı Supabase client
+// Supabase client - CSRF koruması SADECE kendi API route'larımız için gerekli
+// Supabase API'sine direkt giden istekler için gerekli değil
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  global: {
-    fetch: customFetch,
-  },
   auth: {
     // Cookie ayarları - SameSite koruması
     storageKey: 'heard-auth',

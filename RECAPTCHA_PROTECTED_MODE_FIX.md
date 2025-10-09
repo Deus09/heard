@@ -37,21 +37,24 @@ hostname: 'duyur.social'
    - `www.duyur.social` (varsa)
 2. Gerekirse domain'i tekrar ekleyin
 
-### 4. Geçici Kod Düzeltmesi (YAPILDI)
+### 4. Geçici Kod Düzeltmesi (YAPILDI ✅)
 Kod zaten güncellendi:
 - ✅ Score threshold 0.0'a düşürüldü (tüm skorlar kabul ediliyor)
 - ✅ Token geçerli olduğu sürece kabul ediliyor
 - ✅ Google Protected mode uyarıları loglara eklendi
 - ✅ Gerçek API hatalarında (invalid token) hala reddediyor
+- ✅ **Supabase client düzeltildi**: CSRF custom fetch kaldırıldı (sonsuz döngü sorunu çözüldü)
 
 ## Test Etme
-1. Sunucuyu yeniden başlatın (zaten çalışıyor)
-2. Yorum eklemeyi deneyin
-3. Loglarda şunları göreceksiniz:
+1. ✅ Sunucu yeniden başlatıldı
+2. ✅ Supabase client hatası düzeltildi (`getUser` undefined sorunu)
+3. Yorum eklemeyi deneyin
+4. Loglarda şunları göreceksiniz:
    ```
    ⚠️ reCAPTCHA score is 0 - Google Protected mode is blocking traffic
    ⚠️ Meanwhile, accepting request since token is valid
    ✅ reCAPTCHA verified successfully
+   ✅ Yorum başarıyla eklendi
    ```
 
 ## Uzun Vadeli Çözüm
