@@ -8,7 +8,27 @@ const PROFANITY_ROOT_WORDS = new Set([
   'amk', 'mk', 'aq', 'amcik', 'amcık', 'amina', 'amına', 'sik', 'siktir', 'sikerim',
   'göt', 'got', 'götü', 'orospu', 'piç', 'pezevenk', 'kahpe', 'sürtük', 'fahişe',
   'it', 'köpek', 'eşek', 'salak', 'mal', 'gerizekali', 'gerizekalı', 'aptal',
-  'dangalak', 'serefsiz', 'şerefsiz', 'namussuz', 'yavsak', 'yavşak'
+  'dangalak', 'serefsiz', 'şerefsiz', 'namussuz', 'yavsak', 'yavşak','kasar',
+  'yarak', 'yarrak', 'yarrağ', 'yarrak', 'sikik', 'sikiş', 'sikişim', 'sikişmek',
+  'orospuçocuğu', 'orospu çocuğu', 'piçkurusu', 'piç kurusu', 'gavat', 'gavatlık',
+  'pezevenklik', 'pezevenklik', 'kahpelik', 'sürtüklük', 'salaklık', 'malcılık',
+  'gerizekalılık', 'aptallık', 'dangalaklık', 'serefsizlik', 'şerefsizlik',
+  'namussuzluk', 'yavşaklık','kasarlık',
+  // Ek varyasyonlar
+  'amq', 'amcıklar', 'amcıkta', 'amcıkları', 'siktiğim', 'siktiğin', 'siktiği',
+  'siktir git', 'siktir lan', 'siktir et', 'siktir', 'sikiyim', 'sikim', 'sikimi',
+  'götveren', 'götverenler', 'götverenin', 'orospu çocukları', 'orospu çocuğu',
+  'piçler', 'piçin', 'pezevenkler', 'pezevenkin', 'kahpeler', 'kahpenin',
+  'sürtükler', 'sürtüğün', 'itler', 'itin', 'köpekler', 'köpeğin',
+  // Daha fazla varyasyon
+  'amcıklarımın', 'amcıklarımı', 'amcıklarımıza', 'amcıklarımızı',
+  'siktiğimizi', 'siktiğiniz', 'siktiğimiz', 'siktiğinizde',
+  'siktiklerimiz', 'siktikleriniz', 'siktiklerimizde', 'siktiklerinizde',
+  'götverenim', 'götverenimiz', 'götvereniniz', 'götverenimizde',
+  'orospu çocuklarınız', 'orospu çocuklarımız', 'piçleriniz', 'piçlerimiz',
+  'pezevenkleriniz', 'pezevenklerimiz', 'kahpeleriniz', 'kahpelerimiz',
+  'sürtükleriniz', 'sürtüklerimiz', 'itleriniz', 'itlerimiz',
+  'köpekleriniz', 'köpeklerimiz',
   // Daha fazla kelime ve varyasyon eklenebilir.
 ]);
 
