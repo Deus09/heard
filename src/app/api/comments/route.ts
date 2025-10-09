@@ -90,13 +90,15 @@ export async function POST(request: Request) {
           token: recaptchaToken?.substring(0, 20) + '...'
         });
         
-        // Score 0 durumunda bot olarak reddet
-        // Ama reCAPTCHA hatası mesajları için farklı davran
-        if (captchaResult.score === 0 && !captchaResult.message?.includes('reCAPTCHA')) {
+        // GEÇİCİ: Google Protected mode nedeniyle tüm başarısız doğrulamaları kabul et
+        // Sadece Google API hatalarında reddet (token invalid, expired, etc.)
+        if (captchaResult.message?.includes('verification failed') || 
+            captchaResult.message?.includes('error')) {
+          // Gerçek bir API hatası - token geçersiz, süresi dolmuş, vb.
           return NextResponse.json(
             { 
-              error: 'Bot tespiti başarısız oldu. Lütfen tekrar deneyin.',
-              message: 'Sistem şüpheli aktivite tespit etti.',
+              error: 'Güvenlik doğrulaması başarısız oldu. Lütfen tekrar deneyin.',
+              message: 'reCAPTCHA token geçersiz veya süresi dolmuş.',
               debug: process.env.NODE_ENV === 'development' ? {
                 score: captchaResult.score,
                 reason: captchaResult.message
@@ -106,8 +108,10 @@ export async function POST(request: Request) {
           );
         }
         
-        // Düşük skorları logla ama devam et (çünkü Google bazen düşük skor verebilir)
-        console.warn('⚠️ Low reCAPTCHA score but allowing:', captchaResult.score);
+        // Score 0 veya düşük skor - Google Protected mode etkisi
+        // Token geçerli ama score düşük - izin ver
+        console.warn('⚠️ reCAPTCHA score is low but allowing (Google Protected mode):', captchaResult.score);
+        console.warn('⚠️ Recommendation: Adjust Google Cloud reCAPTCHA settings');
       } else {
         console.log('✅ reCAPTCHA verified successfully, score:', captchaResult.score);
       }

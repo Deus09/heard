@@ -76,11 +76,13 @@ export async function verifyRecaptcha(
 
     // Skor kontrolü - 0.5'in üzerindeki skorlar genellikle güvenilir kabul edilir
     // reCAPTCHA v3: 0.0 (bot olasılığı yüksek) - 1.0 (insan olasılığı yüksek)
-    const score = data.score || 0;
+    const score = data.score !== undefined ? data.score : 0;
     
-    // Çok esnek skor eşiği (0.1) - Production'da gerçek kullanıcılar düşük skor alabilir
-    // Özellikle VPN, AdBlock veya gizlilik araçları kullananlar için
-    const threshold = 0.1;
+    // GEÇİCİ: Google Cloud "Protected" modu çok agresif olduğu için threshold 0.0
+    // Normal durumda 0.3-0.5 arası önerilir
+    // Google Cloud Console'dan "Protected" modunu düzenleyin: 
+    // https://console.cloud.google.com/security/recaptcha
+    const threshold = 0.0; // Tüm skorları kabul et (sadece token doğrulaması yap)
     const isHuman = score >= threshold;
 
     console.log(`✅ reCAPTCHA verification result:`, {
@@ -91,24 +93,23 @@ export async function verifyRecaptcha(
       action: data.action || 'undefined',
       expectedAction: expectedAction || 'none',
       hostname: data.hostname,
-      timestamp: data.challenge_ts
+      timestamp: data.challenge_ts,
+      note: 'Threshold 0.0 - accepting all valid tokens (Google Protected mode workaround)'
     });
 
-    if (!isHuman) {
-      console.warn(`⚠️ VERY Low reCAPTCHA score detected: ${score} (threshold: ${threshold})`);
-      console.warn(`⚠️ This might be a bot, but could also be privacy tools`);
-      return {
-        success: false,
-        score,
-        message: 'Suspicious activity detected',
-      };
+    // Score 0 bile olsa, token geçerliyse kabul et (Google Protected mode için)
+    if (score === 0) {
+      console.warn(`⚠️ reCAPTCHA score is 0 - Google Protected mode is blocking traffic`);
+      console.warn(`⚠️ Recommendation: Adjust settings in Google Cloud Console`);
+      console.warn(`⚠️ Meanwhile, accepting request since token is valid`);
     }
 
     // Düşük skor uyarısı (ama geçiyor)
-    if (score < 0.5) {
+    if (score < 0.5 && score > 0) {
       console.warn(`⚠️ Low reCAPTCHA score but passing: ${score} (threshold: ${threshold})`);
     }
 
+    // Token geçerli olduğu sürece kabul et
     return {
       success: true,
       score,
