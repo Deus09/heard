@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function ClearCachePage() {
   const [cleared, setCleared] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     // LocalStorage'daki cache'i temizle
@@ -15,7 +13,7 @@ export default function ClearCachePage() {
       // Service Worker cache'ini temizle (varsa)
       if ('caches' in window) {
         caches.keys().then(function(names) {
-          for (let name of names) caches.delete(name);
+          for (const name of names) caches.delete(name);
         });
       }
       
@@ -41,7 +39,7 @@ export default function ClearCachePage() {
               Tarayıcı önbelleği başarıyla temizlendi. 
             </p>
             <p className="text-sm text-gray-500 mb-8">
-              Ana sayfaya döndüğünde "İlk yorumu sen yapmak ister misin?" karşılama mesajını göreceksin.
+              Ana sayfaya döndüğünde &ldquo;İlk yorumu sen yapmak ister misin?&rdquo; karşılama mesajını göreceksin.
             </p>
             <button
               onClick={handleGoHome}

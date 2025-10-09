@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase'
-import { Comment } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
+import { Comment } from '@/lib/supabaseClient'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 export const commentsService = {

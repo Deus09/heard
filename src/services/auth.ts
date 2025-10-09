@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabaseClient'
 
 export const authService = {
   // Kullanıcı adının müsait olup olmadığını kontrol et

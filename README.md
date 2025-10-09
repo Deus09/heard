@@ -1,6 +1,22 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## 🚀 Gerçek Kullanıcılara Hazır Hale Getirme
+## � Güvenlik
+
+Bu proje CSRF (Cross-Site Request Forgery) saldırılarına karşı korunmaktadır. Detaylar için `CSRF_PROTECTION.md` dosyasına bakın.
+
+### CSRF Koruması Kurulumu
+
+1. `.env.local` dosyası oluşturun (`.env.example` dosyasını kullanabilirsiniz)
+2. Güçlü bir CSRF secret oluşturun:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+3. Oluşturduğunuz secret'ı `.env.local` dosyasına ekleyin:
+   ```bash
+   CSRF_SECRET=your-generated-secret-here
+   ```
+
+## �🚀 Gerçek Kullanıcılara Hazır Hale Getirme
 
 Projeyi ilk kez yayına alırken test verilerini temizlemek için:
 
