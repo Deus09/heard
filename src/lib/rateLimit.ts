@@ -1,4 +1,14 @@
-import { supabase } from './supabaseClient';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { SupabaseClient } from '@supabase/supabase-js';
+
+let supabaseInstance: SupabaseClient | null = null;
+
+const getSupabase = async () => {
+  if (!supabaseInstance) {
+    supabaseInstance = await createServerSupabaseClient();
+  }
+  return supabaseInstance;
+};
 
 interface RateLimitConfig {
   maxRequests: number;
@@ -31,6 +41,7 @@ export class RateLimiter {
   async checkLimit(): Promise<RateLimitResult> {
     const now = new Date();
     const windowStart = new Date(now.getTime() - this.config.windowMs);
+    const supabase = await getSupabase();
 
     try {
       // Mevcut pencere içindeki istekleri say
@@ -98,6 +109,7 @@ export class RateLimiter {
    * Zaman aşımına uğramış rate limit kayıtlarını temizler
    */
   private async cleanup(windowStart: Date): Promise<void> {
+    const supabase = await getSupabase();
     try {
       await supabase
         .from('rate_limits')
@@ -113,6 +125,7 @@ export class RateLimiter {
    * Belirli bir identifier için tüm rate limit kayıtlarını temizler
    */
   static async resetIdentifier(identifier: string): Promise<void> {
+    const supabase = await getSupabase();
     try {
       await supabase.from('rate_limits').delete().eq('identifier', identifier);
     } catch (error) {

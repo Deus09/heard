@@ -68,7 +68,6 @@ export async function verifyRecaptcha(
       );
       console.warn('⚠️ Continuing anyway - action mismatch is not fatal');
       // Production'da action undefined gelebilir, bu yüzden sadece uyar
-      // return { success: false, score: data.score || 0, message: 'Invalid action' };
     }
 
     // Skor kontrolü - 0.5'in üzerindeki skorlar genellikle güvenilir kabul edilir
