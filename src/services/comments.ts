@@ -1,11 +1,26 @@
 import { supabase } from '@/lib/supabaseClient'
 import { Comment } from '@/lib/supabaseClient'
+import { createClient } from '@supabase/supabase-js'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 import type { 
   CursorPaginatedCommentsWithAnnouncesResponse, 
   PaginationCursor,
   CommentWithAnnounces
 } from '@/types'
+
+// Server-side için basit Supabase client (RPC fonksiyonları için)
+function createServerClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    }
+  )
+}
 
 export const commentsService = {
   // Tüm yorumları al (opsiyonel arama terimi ile)
@@ -376,18 +391,27 @@ export const commentsService = {
    * @param pageSize - Sayfa başına yorum sayısı (varsayılan: 50)
    * @param searchTerm - Arama terimi (opsiyonel)
    * @param cityFilter - Şehir filtresi (opsiyonel)
+   * @param isServerSide - Server-side mi çalışıyor (varsayılan: false)
    */
   async getCommentsCursorPaginated(
     cursor: PaginationCursor | null = null,
     pageSize: number = 50,
     searchTerm?: string,
-    cityFilter?: string
+    cityFilter?: string,
+    isServerSide: boolean = false
   ): Promise<CursorPaginatedCommentsWithAnnouncesResponse> {
-    const user = await supabase.auth.getUser()
-    const userId = user.data.user?.id
+    // Server-side ise user bilgisi almıyoruz
+    let userId = null
+    if (!isServerSide) {
+      const user = await supabase.auth.getUser()
+      userId = user.data.user?.id
+    }
+
+    // Server-side için ayrı client kullan
+    const client = isServerSide ? createServerClient() : supabase
 
     // Base query oluştur
-    let query = supabase
+    let query = client
       .from('comments')
       .select('*')
 
@@ -445,7 +469,7 @@ export const commentsService = {
 
     // Announces bilgilerini paralel olarak getir
     const commentIds = dataToReturn.map(c => c.id)
-    const { data: announces } = await supabase
+    const { data: announces } = await client
       .from('announces')
       .select('comment_id, user_identifier')
       .in('comment_id', commentIds)
@@ -486,7 +510,80 @@ export const commentsService = {
   },
 
   /**
-   * Supabase RPC fonksiyonunu kullanarak optimize edilmiş yorum getirme
+   * SSR için optimize edilmiş yorum getirme (SERVER-SIDE)
+   * Server Component'lerden çağrılır
+   */
+  async getCommentsWithAnnouncesOptimizedSSR(
+    cursor: PaginationCursor | null = null,
+    pageSize: number = 50,
+    searchTerm?: string,
+    cityFilter?: string
+  ): Promise<CursorPaginatedCommentsWithAnnouncesResponse> {
+    // Server-side'da user bilgisi almıyoruz (cookie yok)
+    const userId = null
+
+    try {
+      // Server-side Supabase client oluştur
+      const serverSupabase = createServerClient()
+      
+      // Supabase RPC fonksiyonunu çağır
+      const { data, error } = await serverSupabase.rpc('get_comments_with_announces', {
+        search_query: searchTerm || null,
+        filter_city: cityFilter || null,
+        cursor_created_at: cursor?.created_at || null,
+        cursor_id: cursor?.id || null,
+        page_size: pageSize + 1, // +1 ile hasNextPage kontrolü
+        current_user_id: userId
+      })
+
+      if (error) {
+        console.warn('SSR RPC fonksiyonu hatası:', error)
+        // RPC çalışmazsa fallback olarak normal metodu kullan (server-side modunda)
+        return this.getCommentsCursorPaginated(cursor, pageSize, searchTerm, cityFilter, true)
+      }
+
+      if (!data || data.length === 0) {
+        return {
+          data: [],
+          pagination: {
+            nextCursor: null,
+            prevCursor: null,
+            hasNextPage: false,
+            hasPrevPage: !!cursor,
+          }
+        }
+      }
+
+      // HasNextPage kontrolü
+      const hasNextPage = data.length > pageSize
+      const dataToReturn = hasNextPage ? data.slice(0, pageSize) : data
+
+      // Next cursor oluştur
+      const nextCursor: PaginationCursor | null = hasNextPage
+        ? {
+            created_at: dataToReturn[dataToReturn.length - 1].created_at,
+            id: dataToReturn[dataToReturn.length - 1].id,
+          }
+        : null
+
+      return {
+        data: dataToReturn,
+        pagination: {
+          nextCursor,
+          prevCursor: cursor,
+          hasNextPage,
+          hasPrevPage: !!cursor,
+        }
+      }
+    } catch (error) {
+      console.error('SSR optimize edilmiş sorgu hatası:', error)
+      // Hata durumunda fallback (server-side modunda)
+      return this.getCommentsCursorPaginated(cursor, pageSize, searchTerm, cityFilter, true)
+    }
+  },
+
+  /**
+   * CLIENT-SIDE için optimize edilmiş yorum getirme
    * Tek sorgu ile yorumları ve duyuru sayılarını getirir (N+1 problemi çözümü)
    * Not: Bu fonksiyon için supabase-performance-optimization.sql migration'ı çalıştırılmalı
    */

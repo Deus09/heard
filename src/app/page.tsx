@@ -19,8 +19,8 @@ export default async function Home() {
  */
 async function loadInitialComments(): Promise<InitialCommentsData> {
   try {
-    // Cursor olmadan ilk 50 yorumu getir
-    const result = await commentsService.getCommentsWithAnnouncesOptimized(
+    // SSR için özel fonksiyonu kullan (auth.getUser() kullanmaz)
+    const result = await commentsService.getCommentsWithAnnouncesOptimizedSSR(
       null, // cursor
       50,   // pageSize
       undefined, // searchTerm
