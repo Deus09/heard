@@ -98,3 +98,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+
+/* Google reCAPTCHA badge'ini gizle */
+.grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
