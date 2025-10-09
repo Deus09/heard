@@ -111,9 +111,9 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Minimum karakter kontrolü
-    if (formData.experience.trim().length < 20) {
-      showToast('Deneyiminiz en az 30 karakter olmalıdır.', 'error');
+    // İş yeri adı minimum karakter kontrolü
+    if (formData.businessName.trim().length < 2) {
+      showToast('İş yeri adı en az 2 karakter olmalıdır.', 'error');
       return;
     }
 
@@ -124,6 +124,12 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
         `İş yeri adı uygunsuz kelimeler içeriyor: ${badWords.join(', ')}. Lütfen düzeltin.`,
         'error'
       );
+      return;
+    }
+
+    // Deneyim minimum karakter kontrolü (backend ile tutarlı)
+    if (formData.experience.trim().length < 20) {
+      showToast('Deneyiminiz en az 20 karakter olmalıdır.', 'error');
       return;
     }
 

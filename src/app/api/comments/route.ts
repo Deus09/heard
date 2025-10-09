@@ -3,6 +3,7 @@ import { commentsService } from '@/services/comments';
 import { withRateLimit, RateLimitPresets } from '@/lib/rateLimit';
 import { verifyCSRFToken } from '@/lib/csrf';
 import { verifyRecaptcha, RecaptchaActions } from '@/lib/recaptcha';
+import { containsProfanity, getProfanityWords } from '@/lib/profanityFilter';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { Comment } from '@/lib/supabaseClient';
@@ -73,6 +74,54 @@ async function generateAnonymousUsername(): Promise<string> {
 }
 
 /**
+ * İş yeri adı için ek validasyon
+ */
+function validateBusinessName(businessName: string): { valid: boolean; error?: string } {
+  // Trim edilmiş hali
+  const trimmed = businessName.trim();
+  
+  // Boşluk kontrolü
+  if (!trimmed || trimmed.length === 0) {
+    return { valid: false, error: 'İş yeri adı boş olamaz' };
+  }
+  
+  // Uzunluk kontrolleri
+  if (trimmed.length < 3) {
+    return { valid: false, error: 'İş yeri adı en az 3 karakter olmalıdır' };
+  }
+  
+  if (trimmed.length > 100) {
+    return { valid: false, error: 'İş yeri adı en fazla 100 karakter olabilir' };
+  }
+  
+  // Küfür kontrolü
+  if (containsProfanity(trimmed)) {
+    const badWords = getProfanityWords(trimmed);
+    return { 
+      valid: false, 
+      error: `İş yeri adı uygunsuz kelimeler içeriyor: ${badWords.join(', ')}` 
+    };
+  }
+  
+  // Sadece sayılardan oluşması kontrolü
+  if (/^\d+$/.test(trimmed)) {
+    return { valid: false, error: 'İş yeri adı sadece sayılardan oluşamaz' };
+  }
+  
+  // Aşırı tekrar kontrolü (aynı karakterin 5'ten fazla tekrarı)
+  if (/(.)\1{5,}/.test(trimmed)) {
+    return { valid: false, error: 'İş yeri adı aşırı tekrarlı karakterler içeriyor' };
+  }
+  
+  // Sadece özel karakterlerden oluşması kontrolü (en az 1 harf veya rakam olmalı)
+  if (!/[a-zA-Z0-9ğüşıöçĞÜŞİÖÇ]/.test(trimmed)) {
+    return { valid: false, error: 'İş yeri adı en az bir harf veya rakam içermelidir' };
+  }
+  
+  return { valid: true };
+}
+
+/**
  * Yorum ekleme handler fonksiyonu
  */
 async function addCommentHandler(
@@ -84,13 +133,13 @@ async function addCommentHandler(
   anonymous: boolean = false,
   request: Request
 ): Promise<Comment> {
-  // Validasyon kontrolleri
-  if (!businessName || businessName.trim().length === 0) {
-    throw new Error('İş yeri adı boş olamaz')
+  // İş yeri adı validasyonu
+  const businessNameValidation = validateBusinessName(businessName);
+  if (!businessNameValidation.valid) {
+    throw new Error(businessNameValidation.error);
   }
-  if (businessName.length > 100) {
-    throw new Error('İş yeri adı en fazla 100 karakter olabilir')
-  }
+  
+  // Deneyim validasyonu
   if (!experience || experience.trim().length === 0) {
     throw new Error('Deneyim açıklaması boş olamaz')
   }
@@ -100,6 +149,14 @@ async function addCommentHandler(
   if (experience.trim().length < 20) {
     throw new Error('Deneyim açıklaması en az 20 karakter olmalıdır')
   }
+  
+  // Deneyimde küfür kontrolü
+  if (containsProfanity(experience)) {
+    const badWords = getProfanityWords(experience);
+    throw new Error(`Deneyim açıklaması uygunsuz kelimeler içeriyor: ${badWords.join(', ')}`);
+  }
+  
+  // Puan validasyonu
   if (rating < 1 || rating > 5) {
     throw new Error('Puan 1 ile 5 arasında olmalıdır')
   }
