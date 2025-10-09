@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { commentsService } from '@/services/comments';
-import { withRateLimit, RateLimitPresets } from '@/lib/rateLimit';
+import { withRateLimit, RateLimitPresets, getClientIP } from '@/lib/rateLimit';
 import { verifyCSRFToken } from '@/lib/csrf';
 import { verifyRecaptcha, RecaptchaActions } from '@/lib/recaptcha';
 
@@ -15,7 +15,8 @@ export async function POST(request: Request) {
     console.log('🔵 POST /api/comments - Request received');
     
     // 1. Rate limiting kontrolü
-    const rateLimit = await withRateLimit(request, RateLimitPresets.addComment);
+  const clientIP = getClientIP(request);
+  const rateLimit = await withRateLimit(request, RateLimitPresets.addComment);
     
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -74,7 +75,8 @@ export async function POST(request: Request) {
       console.log('🔍 Verifying reCAPTCHA token...');
       const captchaResult = await verifyRecaptcha(
         recaptchaToken,
-        RecaptchaActions.SUBMIT_COMMENT
+        RecaptchaActions.SUBMIT_COMMENT,
+        { remoteIp: clientIP !== 'unknown' ? clientIP : undefined }
       );
 
       console.log('🔍 reCAPTCHA result:', {
