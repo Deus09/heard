@@ -3,8 +3,8 @@
   command = "npm run build"
   
   # NODE_VERSION'ı burada ayarlamak iyi bir uygulamadır. 
-  # Sizin için 18 veya 20 önerilir.
-  environment = { NODE_VERSION = "18" }
+  # Next.js 15 ve Supabase için Node 20+ gereklidir.
+  environment = { NODE_VERSION = "20" }
 
 # Bu eklenti (plugin) kritiktir. 
 # Tüm Next.js ayarlarını, yönlendirmeleri ve API işlevlerini yönetir.
