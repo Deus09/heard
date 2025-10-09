@@ -62,20 +62,7 @@ function RefreshButton({ onRefresh }: { onRefresh?: () => void }) {
 export default function ReviewsContainer({ searchTerm, showToast, selectedCity, onClearCitySelection, onRefresh, lastRefreshTime }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void; selectedCity: string | null; onClearCitySelection?: () => void; onRefresh?: () => void; lastRefreshTime?: number }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
-    const [comments, setComments] = useState<import('@/types').CommentWithAnnounces[]>(() => {
-      // İlk yüklemede localStorage'dan yorumları al
-      if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem('cached_comments');
-        if (cached) {
-          try {
-            return JSON.parse(cached);
-          } catch (e) {
-            return [];
-          }
-        }
-      }
-      return [];
-    });
+    const [comments, setComments] = useState<import('@/types').CommentWithAnnounces[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [page, setPage] = useState(0);
@@ -107,30 +94,10 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
   
     // searchTerm değiştiğinde listeyi sıfırla ve ilk sayfayı yükle
     useEffect(() => {
-      // Eğer arama temizleniyorsa (boş string) ve cache varsa, önce cache'i göster
-      if (!searchTerm && typeof window !== 'undefined') {
-        const cached = localStorage.getItem('cached_comments');
-        if (cached) {
-          try {
-            const cachedData = JSON.parse(cached);
-            setComments(cachedData);
-            setLoading(false); // Cache'den yükledik, loading'i false yap
-          } catch (e) {
-            setComments([]);
-          }
-        } else {
-          setComments([]);
-        }
-      } else {
-        setComments([]);
-      }
-      
+      setComments([]);
       setPage(0);
       setHasMore(true);
-      
-      // Cache varsa ve arama yoksa, arka planda güncelle
-      const shouldShowCache = !searchTerm && typeof window !== 'undefined' && localStorage.getItem('cached_comments');
-      loadComments(0, !shouldShowCache);
+      loadComments(0, true);
     }, [searchTerm]);
   
     // Infinite scroll için Intersection Observer
@@ -175,24 +142,6 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
           // En yeni yorumun zamanını kaydet
           if (result.data.length > 0) {
             setLatestCommentTime(result.data[0].created_at);
-          }
-          
-          // LocalStorage kaydını async yap - main thread'i bloklamaz
-          if (!searchTerm) {
-            setTimeout(() => {
-              try {
-                if (result.data.length > 0) {
-                  // Yorum varsa ilk 4'ünü cache'le
-                  const firstFour = result.data.slice(0, 4);
-                  localStorage.setItem('cached_comments', JSON.stringify(firstFour));
-                } else {
-                  // Yorum yoksa cache'i temizle
-                  localStorage.removeItem('cached_comments');
-                }
-              } catch (e) {
-                console.warn('localStorage hatası:', e);
-              }
-            }, 0);
           }
         } else {
           setComments(prev => [...prev, ...result.data]);
