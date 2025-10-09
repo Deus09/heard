@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Next.js Middleware - CSRF token kontrolü header seviyesinde
+ * Next.js Middleware - CSRF token kontrolü ve güvenlik başlıkları
  * Edge Runtime uyumlu basit kontrol
  */
 export async function middleware(request: NextRequest) {
@@ -24,7 +24,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next();
+  // Response oluştur ve güvenlik başlıklarını ekle
+  const response = NextResponse.next();
+  
+  // Runtime güvenlik başlıkları (next.config.ts'deki statik başlıklara ek)
+  response.headers.set('X-DNS-Prefetch-Control', 'on');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  
+  return response;
 }
 
 // Middleware'in hangi route'larda çalışacağını belirt
