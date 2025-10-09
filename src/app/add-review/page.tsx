@@ -8,8 +8,7 @@ import ReviewConfirmModal from "@/components/ReviewConfirmModal";
 import Image from "next/image";
 import Link from 'next/link';
 import { useCSRF } from "@/contexts/CSRFContext";
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
-
+import { useRecaptcha } from '@/contexts/RecaptchaContext';
 
 // Şehir-İlçe verileri (tüm şehirler için)
 const districtsByCity: { [key: string]: string[] } = {
@@ -99,8 +98,7 @@ const districtsByCity: { [key: string]: string[] } = {
 export default function AddReviewPage() {
   const { showToast, ToastContainer } = useToast();
   const { csrfToken, isLoading: csrfLoading } = useCSRF();
-  const { executeRecaptcha } = useGoogleReCaptcha();
-  const [formData, setFormData] = useState({
+const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = useState({
     businessName: "",
     city: "",
     district: "",

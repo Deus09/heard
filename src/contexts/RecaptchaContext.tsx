@@ -1,32 +1,64 @@
 "use client";
 
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
-import { ReactNode } from 'react';
+import React, { createContext, useCallback, useContext } from 'react';
+import Script from 'next/script';
 
-interface RecaptchaProviderProps {
-  children: ReactNode;
+// 1. TypeScript'e grecaptcha objesini tanıtıyoruz
+declare global {
+  interface Window {
+    grecaptcha: {
+      ready: (callback: () => void) => void;
+      execute: (siteKey: string, options: { action: string }) => Promise<string>;
+    };
+  }
 }
 
-export function RecaptchaProvider({ children }: RecaptchaProviderProps) {
-  // Environment variable'dan site key'i al
-  const reCaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+// 2. executeRecaptcha'nın dönüş tipini 'string | undefined' olarak belirliyoruz
+interface RecaptchaContextType {
+  executeRecaptcha: (action: string) => Promise<string | undefined>;
+}
 
-  // Site key yoksa provider'ı kullanma
-  if (!reCaptchaSiteKey) {
-    console.warn('reCAPTCHA site key not found. Captcha verification will be disabled.');
-    return <>{children}</>;
+const RecaptchaContext = createContext<RecaptchaContextType | undefined>(undefined);
+
+export const useRecaptcha = () => {
+  const context = useContext(RecaptchaContext);
+  if (!context) {
+    throw new Error('useRecaptcha must be used within a RecaptchaProvider');
   }
+  return context;
+};
+
+export const RecaptchaProvider = ({ children }: { children: React.ReactNode }) => {
+  const executeRecaptcha = useCallback(async (action: string) => {
+    if (typeof window === 'undefined' || !window.grecaptcha) {
+      console.error('reCAPTCHA script not loaded or not in browser environment');
+      return undefined;
+    }
+
+    return new Promise<string | undefined>((resolve) => {
+      window.grecaptcha.ready(() => {
+        const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+        if (!siteKey) {
+          console.error("reCAPTCHA site key is not set.");
+          resolve(undefined);
+          return;
+        }
+        window.grecaptcha.execute(siteKey, { action: action })
+          // 3. 'token' parametresine 'string' tipini ekliyoruz
+          .then((token: string) => {
+            resolve(token);
+          });
+      });
+    });
+  }, []);
 
   return (
-    <GoogleReCaptchaProvider
-      reCaptchaKey={reCaptchaSiteKey}
-      scriptProps={{
-        async: true,
-        defer: true,
-        appendTo: 'head',
-      }}
-    >
+    <RecaptchaContext.Provider value={{ executeRecaptcha }}>
+      <Script
+        src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
+        strategy="lazyOnload"
+      />
       {children}
-    </GoogleReCaptchaProvider>
+    </RecaptchaContext.Provider>
   );
-}
+};

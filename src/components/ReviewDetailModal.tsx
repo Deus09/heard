@@ -4,6 +4,7 @@ import { X, Star, MapPin } from "lucide-react";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 
+
 interface ReviewDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -36,6 +37,7 @@ export default function ReviewDetailModal({
   const [announced, setAnnounced] = useState(hasAnnounced);
   const [count, setCount] = useState(announceCount);
   const [isProcessing, setIsProcessing] = useState(false);
+
 
   // ESC tuşu ile kapatma
   useEffect(() => {
