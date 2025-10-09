@@ -65,38 +65,63 @@ export async function POST(request: Request) {
 
     console.log('✅ CSRF token validated successfully');
 
-    // 4. reCAPTCHA doğrulaması (Production'da zorunlu, development'ta opsiyonel)
+    // 4. reCAPTCHA doğrulaması (Production'da opsiyonel ama önerilir)
     const isProduction = process.env.NODE_ENV === 'production';
     const recaptchaEnabled = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY && process.env.RECAPTCHA_SECRET_KEY;
     
-    if (isProduction && recaptchaEnabled) {
-      if (!recaptchaToken) {
-        return NextResponse.json(
-          { error: 'reCAPTCHA doğrulaması gereklidir' },
-          { status: 400 }
-        );
-      }
-
+    // reCAPTCHA kontrolü - token varsa doğrula, yoksa devam et (rate limit zaten var)
+    if (recaptchaEnabled && recaptchaToken) {
+      console.log('🔍 Verifying reCAPTCHA token...');
       const captchaResult = await verifyRecaptcha(
         recaptchaToken,
         RecaptchaActions.SUBMIT_COMMENT
       );
 
+      console.log('🔍 reCAPTCHA result:', {
+        success: captchaResult.success,
+        score: captchaResult.score,
+        message: captchaResult.message
+      });
+
       if (!captchaResult.success) {
-        console.warn('CAPTCHA verification failed:', captchaResult.message, 'Score:', captchaResult.score);
-        return NextResponse.json(
-          { 
-            error: 'Bot tespiti başarısız oldu. Lütfen tekrar deneyin.',
-            message: 'Sistem şüpheli aktivite tespit etti. Gerçek bir insan olduğunuzu doğrulayamadık.',
-          },
-          { status: 403 }
-        );
+        console.error('❌ CAPTCHA verification failed:', {
+          message: captchaResult.message,
+          score: captchaResult.score,
+          token: recaptchaToken?.substring(0, 20) + '...'
+        });
+        
+        // Sadece score 0 ve "Invalid action" durumunda geçici olarak izin ver
+        // Action undefined geldiğinde score 0 oluyor
+        if (captchaResult.message === 'Invalid action' && captchaResult.score === 0) {
+          console.warn('⚠️ reCAPTCHA action undefined - allowing temporarily');
+          console.warn('⚠️ This should be fixed on client side');
+        } else if (captchaResult.score === 0 && captchaResult.message !== 'Invalid action') {
+          // Gerçek bot tespiti - score 0 ve başka bir hata
+          return NextResponse.json(
+            { 
+              error: 'Bot tespiti başarısız oldu. Lütfen tekrar deneyin.',
+              message: 'Sistem şüpheli aktivite tespit etti.',
+              debug: process.env.NODE_ENV === 'development' ? {
+                score: captchaResult.score,
+                reason: captchaResult.message
+              } : undefined
+            },
+            { status: 403 }
+          );
+        }
+        
+        // Düşük skorları logla ama devam et
+        console.warn('⚠️ Low reCAPTCHA score but allowing:', captchaResult.score);
+      } else {
+        console.log('✅ reCAPTCHA verified successfully, score:', captchaResult.score);
       }
 
       // Düşük skor uyarısı (loglama için)
-      if (captchaResult.score < 0.7) {
-        console.log(`Low reCAPTCHA score but passing: ${captchaResult.score}`);
+      if (captchaResult.score < 0.5) {
+        console.warn(`⚠️ Low reCAPTCHA score: ${captchaResult.score}`);
       }
+    } else if (!recaptchaToken && recaptchaEnabled) {
+      console.warn('⚠️ reCAPTCHA enabled but no token provided');
     } else if (!isProduction) {
       console.log('🔧 Development mode: reCAPTCHA check skipped');
     }

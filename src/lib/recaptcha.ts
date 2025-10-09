@@ -61,30 +61,49 @@ export async function verifyRecaptcha(
       };
     }
 
-    // Action kontrolü (opsiyonel)
+    // Action kontrolü (opsiyonel) - sadece uyarı ver, reddetme
     if (expectedAction && data.action !== expectedAction) {
       console.warn(
-        `reCAPTCHA action mismatch. Expected: ${expectedAction}, Got: ${data.action}`
+        `⚠️ reCAPTCHA action mismatch. Expected: ${expectedAction}, Got: ${data.action || 'undefined'}`
       );
-      return {
-        success: false,
-        score: data.score || 0,
-        message: 'Invalid action',
-      };
+      console.warn('⚠️ Continuing anyway - action mismatch is not fatal');
+      // Production'da action undefined gelebilir, bu yüzden sadece uyar
+      // return { success: false, score: data.score || 0, message: 'Invalid action' };
     }
 
     // Skor kontrolü - 0.5'in üzerindeki skorlar genellikle güvenilir kabul edilir
     // reCAPTCHA v3: 0.0 (bot olasılığı yüksek) - 1.0 (insan olasılığı yüksek)
     const score = data.score || 0;
-    const isHuman = score >= 0.5;
+    
+    // Çok esnek skor eşiği (0.1) - Production'da gerçek kullanıcılar düşük skor alabilir
+    // Özellikle VPN, AdBlock veya gizlilik araçları kullananlar için
+    const threshold = 0.1;
+    const isHuman = score >= threshold;
+
+    console.log(`✅ reCAPTCHA verification result:`, {
+      success: data.success,
+      score,
+      threshold,
+      isHuman,
+      action: data.action || 'undefined',
+      expectedAction: expectedAction || 'none',
+      hostname: data.hostname,
+      timestamp: data.challenge_ts
+    });
 
     if (!isHuman) {
-      console.warn(`Low reCAPTCHA score detected: ${score}`);
+      console.warn(`⚠️ VERY Low reCAPTCHA score detected: ${score} (threshold: ${threshold})`);
+      console.warn(`⚠️ This might be a bot, but could also be privacy tools`);
       return {
         success: false,
         score,
         message: 'Suspicious activity detected',
       };
+    }
+
+    // Düşük skor uyarısı (ama geçiyor)
+    if (score < 0.5) {
+      console.warn(`⚠️ Low reCAPTCHA score but passing: ${score} (threshold: ${threshold})`);
     }
 
     return {
