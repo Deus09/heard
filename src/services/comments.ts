@@ -1,6 +1,11 @@
 import { supabase } from '@/lib/supabaseClient'
 import { Comment } from '@/lib/supabaseClient'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import type { 
+  CursorPaginatedCommentsWithAnnouncesResponse, 
+  PaginationCursor,
+  CommentWithAnnounces
+} from '@/types'
 
 export const commentsService = {
   // Tüm yorumları al (opsiyonel arama terimi ile)
@@ -355,6 +360,199 @@ export const commentsService = {
       data: transformedData,
       count: count || 0,
       hasMore: count ? (from + pageSize) < count : false
+    }
+  },
+
+  // ====================================================================
+  // CURSOR-BASED PAGINATION (Yeni ve Optimize Edilmiş)
+  // Yüz binlerce yorum için sabit performans
+  // ====================================================================
+
+  /**
+   * Cursor-based pagination ile yorumları al (Duyuru sayılarıyla birlikte)
+   * Offset-based pagination yerine cursor kullanarak ölçeklenebilirlik sağlar
+   * 
+   * @param cursor - Önceki sayfanın son yorumundan alınan cursor (ilk sayfa için null)
+   * @param pageSize - Sayfa başına yorum sayısı (varsayılan: 50)
+   * @param searchTerm - Arama terimi (opsiyonel)
+   * @param cityFilter - Şehir filtresi (opsiyonel)
+   */
+  async getCommentsCursorPaginated(
+    cursor: PaginationCursor | null = null,
+    pageSize: number = 50,
+    searchTerm?: string,
+    cityFilter?: string
+  ): Promise<CursorPaginatedCommentsWithAnnouncesResponse> {
+    const user = await supabase.auth.getUser()
+    const userId = user.data.user?.id
+
+    // Base query oluştur
+    let query = supabase
+      .from('comments')
+      .select('*')
+
+    // Cursor-based filtering (created_at, id ile sıralama)
+    if (cursor) {
+      // (created_at, id) < (cursor.created_at, cursor.id) - PostgreSQL composite comparison
+      query = query.or(
+        `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`
+      )
+    }
+
+    // Şehir filtresi
+    if (cityFilter && cityFilter.trim()) {
+      query = query.eq('city', cityFilter.trim())
+    }
+
+    // Arama filtresi
+    if (searchTerm && searchTerm.trim()) {
+      const term = `%${searchTerm.trim()}%`
+      query = query.or(`business_name.ilike.${term},city.ilike.${term},district.ilike.${term}`)
+    }
+
+    // Sıralama ve limit
+    query = query
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(pageSize + 1) // +1 ile hasNextPage kontrolü yapacağız
+
+    const { data: comments, error } = await query
+
+    if (error) throw error
+    if (!comments || comments.length === 0) {
+      return {
+        data: [],
+        pagination: {
+          nextCursor: null,
+          prevCursor: null,
+          hasNextPage: false,
+          hasPrevPage: !!cursor,
+        }
+      }
+    }
+
+    // HasNextPage kontrolü
+    const hasNextPage = comments.length > pageSize
+    const dataToReturn = hasNextPage ? comments.slice(0, pageSize) : comments
+    
+    // Next cursor oluştur
+    const nextCursor: PaginationCursor | null = hasNextPage
+      ? {
+          created_at: dataToReturn[dataToReturn.length - 1].created_at,
+          id: dataToReturn[dataToReturn.length - 1].id,
+        }
+      : null
+
+    // Announces bilgilerini paralel olarak getir
+    const commentIds = dataToReturn.map(c => c.id)
+    const { data: announces } = await supabase
+      .from('announces')
+      .select('comment_id, user_identifier')
+      .in('comment_id', commentIds)
+
+    // Duyuruları comment_id'ye göre grupla
+    const announcesByCommentId = (announces || []).reduce((acc, announce) => {
+      if (!acc[announce.comment_id]) {
+        acc[announce.comment_id] = []
+      }
+      acc[announce.comment_id].push(announce)
+      return acc
+    }, {} as Record<string, any[]>)
+
+    // Veriyi birleştir
+    const transformedData: CommentWithAnnounces[] = dataToReturn.map(comment => {
+      const commentAnnounces = announcesByCommentId[comment.id] || []
+      const announceCount = commentAnnounces.length
+      const hasAnnounced = userId 
+        ? commentAnnounces.some(a => a.user_identifier === userId) 
+        : false
+
+      return {
+        ...comment,
+        announceCount,
+        hasAnnounced
+      }
+    })
+
+    return {
+      data: transformedData,
+      pagination: {
+        nextCursor,
+        prevCursor: cursor,
+        hasNextPage,
+        hasPrevPage: !!cursor,
+      }
+    }
+  },
+
+  /**
+   * Supabase RPC fonksiyonunu kullanarak optimize edilmiş yorum getirme
+   * Tek sorgu ile yorumları ve duyuru sayılarını getirir (N+1 problemi çözümü)
+   * Not: Bu fonksiyon için supabase-performance-optimization.sql migration'ı çalıştırılmalı
+   */
+  async getCommentsWithAnnouncesOptimized(
+    cursor: PaginationCursor | null = null,
+    pageSize: number = 50,
+    searchTerm?: string,
+    cityFilter?: string
+  ): Promise<CursorPaginatedCommentsWithAnnouncesResponse> {
+    const user = await supabase.auth.getUser()
+    const userId = user.data.user?.id
+
+    try {
+      // Supabase RPC fonksiyonunu çağır
+      const { data, error } = await supabase.rpc('get_comments_with_announces', {
+        search_query: searchTerm || null,
+        filter_city: cityFilter || null,
+        cursor_created_at: cursor?.created_at || null,
+        cursor_id: cursor?.id || null,
+        page_size: pageSize + 1, // +1 ile hasNextPage kontrolü
+        current_user_id: userId || null
+      })
+
+      if (error) {
+        console.warn('RPC fonksiyonu kullanılamadı, fallback metoda geçiliyor:', error)
+        // RPC çalışmazsa fallback olarak normal metodu kullan
+        return this.getCommentsCursorPaginated(cursor, pageSize, searchTerm, cityFilter)
+      }
+
+      if (!data || data.length === 0) {
+        return {
+          data: [],
+          pagination: {
+            nextCursor: null,
+            prevCursor: null,
+            hasNextPage: false,
+            hasPrevPage: !!cursor,
+          }
+        }
+      }
+
+      // HasNextPage kontrolü
+      const hasNextPage = data.length > pageSize
+      const dataToReturn = hasNextPage ? data.slice(0, pageSize) : data
+
+      // Next cursor oluştur
+      const nextCursor: PaginationCursor | null = hasNextPage
+        ? {
+            created_at: dataToReturn[dataToReturn.length - 1].created_at,
+            id: dataToReturn[dataToReturn.length - 1].id,
+          }
+        : null
+
+      return {
+        data: dataToReturn,
+        pagination: {
+          nextCursor,
+          prevCursor: cursor,
+          hasNextPage,
+          hasPrevPage: !!cursor,
+        }
+      }
+    } catch (error) {
+      console.error('Optimize edilmiş sorgu hatası:', error)
+      // Hata durumunda fallback
+      return this.getCommentsCursorPaginated(cursor, pageSize, searchTerm, cityFilter)
     }
   },
 

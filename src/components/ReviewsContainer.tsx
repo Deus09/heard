@@ -59,18 +59,42 @@ function RefreshButton({ onRefresh }: { onRefresh?: () => void }) {
   );
 }
 
-export default function ReviewsContainer({ searchTerm, showToast, selectedCity, onClearCitySelection, onRefresh, lastRefreshTime }: { searchTerm: string; showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void; selectedCity: string | null; onClearCitySelection?: () => void; onRefresh?: () => void; lastRefreshTime?: number }) {
+interface ReviewsContainerProps {
+  searchTerm: string;
+  showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void;
+  selectedCity: string | null;
+  onClearCitySelection?: () => void;
+  onRefresh?: () => void;
+  lastRefreshTime?: number;
+  initialData?: import('@/types').InitialCommentsData;
+}
+
+export default function ReviewsContainer({ 
+  searchTerm, 
+  showToast, 
+  selectedCity, 
+  onClearCitySelection, 
+  onRefresh, 
+  lastRefreshTime,
+  initialData 
+}: ReviewsContainerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
-    const [comments, setComments] = useState<import('@/types').CommentWithAnnounces[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [comments, setComments] = useState<import('@/types').CommentWithAnnounces[]>(
+      initialData?.comments || []
+    );
+    const [loading, setLoading] = useState(!initialData); // SSR varsa loading false
     const [loadingMore, setLoadingMore] = useState(false);
-    const [page, setPage] = useState(0);
-    const [hasMore, setHasMore] = useState(true);
+    const [nextCursor, setNextCursor] = useState<import('@/types').PaginationCursor | null>(
+      initialData?.nextCursor || null
+    );
+    const [hasMore, setHasMore] = useState(initialData?.hasMore ?? true);
     const observerTarget = useRef<HTMLDivElement>(null);
-    const [latestCommentTime, setLatestCommentTime] = useState<string | null>(null);
+    const [latestCommentTime, setLatestCommentTime] = useState<string | null>(
+      initialData?.comments[0]?.created_at || null
+    );
     
-    const PAGE_SIZE = 12;
+    const PAGE_SIZE = 50; // Daha büyük sayfa boyutu ile daha az istek
     
     const categories = [
       "Kafe Yorumları",
@@ -92,13 +116,19 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
       return () => clearInterval(interval);
     }, [categories.length]);
   
-    // searchTerm değiştiğinde listeyi sıfırla ve ilk sayfayı yükle
+    // searchTerm veya selectedCity değiştiğinde listeyi sıfırla ve ilk sayfayı yükle
     useEffect(() => {
+      // SSR'dan gelen initial data ile başlıyorsa ve ilk render ise atla
+      if (initialData && !searchTerm && !selectedCity) {
+        return;
+      }
+      
+      // Arama veya filtre değiştiğinde yeniden yükle
       setComments([]);
-      setPage(0);
+      setNextCursor(null);
       setHasMore(true);
-      loadComments(0, true);
-    }, [searchTerm]);
+      loadComments(null, true);
+    }, [searchTerm, selectedCity]);
   
     // Infinite scroll için Intersection Observer
     useEffect(() => {
@@ -106,11 +136,11 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
       
       const observer = new IntersectionObserver(
         (entries) => {
-          if (entries[0].isIntersecting) {
+          if (entries[0].isIntersecting && nextCursor) {
             loadMoreComments();
           }
         },
-        { threshold: 0.1, rootMargin: '100px' }
+        { threshold: 0.1, rootMargin: '200px' } // Daha erken tetikle
       );
   
       const currentTarget = observerTarget.current;
@@ -123,9 +153,17 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
           observer.unobserve(currentTarget);
         }
       };
-    }, [hasMore, loading, loadingMore]);
+    }, [hasMore, loading, loadingMore, nextCursor]);
   
-    const loadComments = async (pageNum: number, isInitial: boolean = false) => {
+    /**
+     * Yorumları cursor-based pagination ile yükler
+     * @param cursor - Pagination cursor (null = ilk sayfa)
+     * @param isInitial - İlk yükleme mi?
+     */
+    const loadComments = async (
+      cursor: import('@/types').PaginationCursor | null, 
+      isInitial: boolean = false
+    ) => {
       if (isInitial) {
         setLoading(true);
       } else {
@@ -133,8 +171,30 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
       }
       
       try {
-        const { commentsService } = await import("@/services/comments");
-        const result = await commentsService.getCommentsPaginatedWithAnnounces(pageNum, PAGE_SIZE, searchTerm);
+        // API endpoint'i kullanarak yorumları getir
+        const cursorParam = cursor 
+          ? `&cursor=${Buffer.from(JSON.stringify(cursor)).toString('base64')}`
+          : '';
+        
+        const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
+        const cityParam = selectedCity ? `&city=${encodeURIComponent(selectedCity)}` : '';
+        
+        const response = await fetch(
+          `/api/comments?pageSize=${PAGE_SIZE}${cursorParam}${searchParam}${cityParam}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error('Yorumlar yüklenirken hata oluştu');
+        }
+        
+        const result: import('@/types').CursorPaginatedCommentsWithAnnouncesResponse = 
+          await response.json();
         
         if (isInitial) {
           setComments(result.data);
@@ -147,26 +207,50 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
           setComments(prev => [...prev, ...result.data]);
         }
         
-        setHasMore(result.hasMore);
+        setNextCursor(result.pagination.nextCursor);
+        setHasMore(result.pagination.hasNextPage);
       } catch (error) {
         console.error('Yorumlar yüklenirken hata:', error);
+        showToast('Yorumlar yüklenirken bir hata oluştu', 'error');
       } finally {
         setLoading(false);
         setLoadingMore(false);
       }
     };
   
+    /**
+     * Sonraki sayfayı yükler (infinite scroll)
+     */
     const loadMoreComments = () => {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      loadComments(nextPage, false);
+      if (!nextCursor || loadingMore) return;
+      loadComments(nextCursor, false);
     };
     
-    // Yeni yorumları kontrol et ve varsa listeye ekle
+    /**
+     * Yeni yorumları kontrol et ve varsa listeye ekle
+     * Son bilinen yorumdan daha yeni yorumları getirir
+     */
     const checkForNewComments = async () => {
       try {
-        const { commentsService } = await import("@/services/comments");
-        const result = await commentsService.getCommentsPaginatedWithAnnounces(0, PAGE_SIZE, searchTerm);
+        const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
+        const cityParam = selectedCity ? `&city=${encodeURIComponent(selectedCity)}` : '';
+        
+        const response = await fetch(
+          `/api/comments?pageSize=${PAGE_SIZE}${searchParam}${cityParam}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error('Yorumlar yüklenirken hata oluştu');
+        }
+        
+        const result: import('@/types').CursorPaginatedCommentsWithAnnouncesResponse = 
+          await response.json();
         
         if (result.data.length === 0) {
           showToast("Henüz yeni yorum yok", "info");
@@ -176,7 +260,9 @@ export default function ReviewsContainer({ searchTerm, showToast, selectedCity, 
         // En son bilinen yorumdan daha yeni yorumlar var mı kontrol et
         if (latestCommentTime && result.data[0].created_at > latestCommentTime) {
           // Yeni yorumları filtrele
-          const newComments = result.data.filter(comment => comment.created_at > latestCommentTime);
+          const newComments = result.data.filter(
+            comment => comment.created_at > latestCommentTime
+          );
           
           if (newComments.length > 0) {
             // Yeni yorumları listenin başına ekle

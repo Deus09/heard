@@ -77,7 +77,7 @@ export interface CommentWithAnnounces extends Comment {
 }
 
 /**
- * Sayfalı yorum yanıtı
+ * Sayfalı yorum yanıtı (Offset-based - Legacy)
  */
 export interface PaginatedCommentsResponse {
   data: Comment[];
@@ -86,12 +86,58 @@ export interface PaginatedCommentsResponse {
 }
 
 /**
- * Duyurulu sayfalı yorum yanıtı
+ * Duyurulu sayfalı yorum yanıtı (Offset-based - Legacy)
  */
 export interface PaginatedCommentsWithAnnouncesResponse {
   data: CommentWithAnnounces[];
   count: number;
   hasMore: boolean;
+}
+
+/**
+ * Cursor-based pagination için cursor tipi
+ * created_at ve id'den oluşur
+ */
+export interface PaginationCursor {
+  created_at: string;
+  id: string;
+}
+
+/**
+ * Cursor-based pagination metadata
+ */
+export interface CursorPaginationMeta {
+  nextCursor: PaginationCursor | null;
+  prevCursor: PaginationCursor | null;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  totalCount?: number; // Optional - performans için approximate olabilir
+}
+
+/**
+ * Cursor-based sayfalı yorum yanıtı
+ */
+export interface CursorPaginatedCommentsResponse {
+  data: Comment[];
+  pagination: CursorPaginationMeta;
+}
+
+/**
+ * Duyurulu cursor-based sayfalı yorum yanıtı
+ */
+export interface CursorPaginatedCommentsWithAnnouncesResponse {
+  data: CommentWithAnnounces[];
+  pagination: CursorPaginationMeta;
+}
+
+/**
+ * SSR için initial data tipi
+ */
+export interface InitialCommentsData {
+  comments: CommentWithAnnounces[];
+  nextCursor: PaginationCursor | null;
+  hasMore: boolean;
+  totalCount: number;
 }
 
 // ===========================

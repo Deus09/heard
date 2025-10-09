@@ -148,8 +148,19 @@ export async function POST(request: Request) {
 }
 
 /**
- * Yorumları getir (opsiyonel - sayfalama ile)
- * GET /api/comments?page=0&pageSize=12&search=keyword
+ * Yorumları getir (Cursor-based pagination ile)
+ * GET /api/comments?cursor=base64EncodedCursor&pageSize=50&search=keyword&city=Istanbul
+ * 
+ * Query Parameters:
+ * - cursor: Base64 encoded pagination cursor (optional, ilk sayfa için null)
+ * - pageSize: Sayfa başına yorum sayısı (default: 50, max: 100)
+ * - search: Arama terimi (optional)
+ * - city: Şehir filtresi (optional)
+ * 
+ * Response Headers:
+ * - X-Next-Cursor: Sonraki sayfa için cursor
+ * - X-Has-Next-Page: Sonraki sayfa var mı (true/false)
+ * - X-RateLimit-*: Rate limit bilgileri
  */
 export async function GET(request: Request) {
   try {
@@ -171,26 +182,61 @@ export async function GET(request: Request) {
       );
     }
 
-    // Query parametrelerini al
+    // Query parametrelerini al ve parse et
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '0');
-    const pageSize = parseInt(searchParams.get('pageSize') || '12');
-    const search = searchParams.get('search') || undefined;
+    
+    // Cursor parse et (base64 encoded olarak gelir)
+    let cursor = null;
+    const cursorParam = searchParams.get('cursor');
+    if (cursorParam) {
+      try {
+        const decoded = Buffer.from(cursorParam, 'base64').toString('utf-8');
+        cursor = JSON.parse(decoded);
+      } catch (e) {
+        return NextResponse.json(
+          { error: 'Geçersiz cursor formatı' },
+          { status: 400 }
+        );
+      }
+    }
 
-    // Yorumları getir
-    const result = await commentsService.getCommentsPaginatedWithAnnounces(
-      page,
-      pageSize,
-      search
+    // Sayfa boyutu (max 100 ile sınırla)
+    const pageSize = Math.min(
+      parseInt(searchParams.get('pageSize') || '50'),
+      100
     );
 
-    return NextResponse.json(result, {
-      headers: {
-        'X-RateLimit-Limit': RateLimitPresets.general.maxRequests.toString(),
-        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
-        'X-RateLimit-Reset': rateLimit.resetTime.toISOString(),
-      },
-    });
+    // Filtreler
+    const search = searchParams.get('search') || undefined;
+    const city = searchParams.get('city') || undefined;
+
+    // Yorumları getir (Optimize edilmiş RPC fonksiyonu ile)
+    const result = await commentsService.getCommentsWithAnnouncesOptimized(
+      cursor,
+      pageSize,
+      search,
+      city
+    );
+
+    // Next cursor'ı base64 encode et
+    const nextCursorEncoded = result.pagination.nextCursor
+      ? Buffer.from(JSON.stringify(result.pagination.nextCursor)).toString('base64')
+      : null;
+
+    // Response headers
+    const headers: Record<string, string> = {
+      'X-RateLimit-Limit': RateLimitPresets.general.maxRequests.toString(),
+      'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+      'X-RateLimit-Reset': rateLimit.resetTime.toISOString(),
+      'X-Has-Next-Page': result.pagination.hasNextPage.toString(),
+      'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30', // 10 saniye cache
+    };
+
+    if (nextCursorEncoded) {
+      headers['X-Next-Cursor'] = nextCursorEncoded;
+    }
+
+    return NextResponse.json(result, { headers });
   } catch (error) {
     console.error('Yorumlar getirme hatası:', error);
     return NextResponse.json(

@@ -1,105 +1,54 @@
-"use client";
+import { commentsService } from "@/services/comments";
+import HomeClient from "@/components/HomeClient";
+import type { InitialCommentsData } from "@/types";
 
-import { useState } from "react";
-import { useToast } from "@/components/ui/toast";
-import dynamic from 'next/dynamic';
-import Header from "@/components/Header";
-import HeroSection from "@/components/HeroSection";
-import Controls from "@/components/Controls";
-import ReviewsContainer from "@/components/ReviewsContainer";
-import Footer from "@/components/Footer";
+/**
+ * Ana sayfa - Server Component
+ * İlk 50 yorumu SSR ile yükleyerek anında görüntüleme sağlar
+ */
+export default async function Home() {
+  // SSR: İlk yorumları server-side yükle
+  const initialData = await loadInitialComments();
 
-// TurkeyMap'i dinamik olarak yükle (SSR'yi devre dışı bırak)
-const MapContainer = dynamic(() => import('@/components/MapContainer'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-[600px] bg-gray-50 rounded-lg">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-    </div>
-  )
-});
-
-export default function Home() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [activeSearchTerm, setActiveSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const { showToast, ToastContainer } = useToast();
-  const [lastRefreshTime, setLastRefreshTime] = useState<number>(0);
-  const [canRefresh, setCanRefresh] = useState(true);
-
-  const handleSearch = (value: string) => {
-    setActiveSearchTerm(value);
-    // Manuel arama yapıldığında şehir seçimini temizle
-    if (value !== selectedCity) {
-      setSelectedCity(null);
-    }
-  };
-
-  const handleClearSearch = () => {
-    setSearchTerm("");
-    setActiveSearchTerm("");
-    setSelectedCity(null);
-  };
-
-  const handleCityClick = (city: string) => {
-    setSelectedCity(city);
-    setViewMode("list");
-    setActiveSearchTerm(city);
-    // Sayfanın başına smooth scroll
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 100);
-  };
-
-  const handleRefresh = () => {
-    if (!canRefresh) {
-      showToast("Lütfen 30 saniye bekleyin", "warning");
-      return;
-    }
-
-    // Yenileme işlemini tetikle
-    setLastRefreshTime(Date.now());
-    
-    // 30 saniye boyunca butonu devre dışı bırak
-    setCanRefresh(false);
-    setTimeout(() => {
-      setCanRefresh(true);
-    }, 30000);
-  };
-
-  return (
-    <div className="min-h-screen bg-white flex flex-col">
-      <Header />
-      <main className={`mx-auto px-6 flex-grow ${viewMode === "list" ? "max-w-6xl" : "max-w-full"}`}>
-        <div className={viewMode === "list" ? "" : "max-w-[1600px] mx-auto px-4"}>
-          <HeroSection />
-          <Controls 
-            searchTerm={searchTerm} 
-            onSearchChange={setSearchTerm}
-            onSearch={handleSearch}
-            onClearSearch={handleClearSearch}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            onRefresh={handleRefresh}
-            lastRefreshTime={lastRefreshTime}
-          />
-          {viewMode === "list" ? (
-            <ReviewsContainer 
-              searchTerm={activeSearchTerm} 
-              showToast={showToast} 
-              selectedCity={selectedCity}
-              onClearCitySelection={handleClearSearch}
-              onRefresh={handleRefresh}
-              lastRefreshTime={lastRefreshTime}
-            />
-          ) : (
-            <MapContainer onCityClick={handleCityClick} />
-          )}
-        </div>
-      </main>
-      <Footer />
-      <ToastContainer />
-    </div>
-  );
+  return <HomeClient initialData={initialData} />;
 }
+
+/**
+ * İlk yorumları yükler (Server-side)
+ * @returns İlk 50 yorum ve pagination metadata
+ */
+async function loadInitialComments(): Promise<InitialCommentsData> {
+  try {
+    // Cursor olmadan ilk 50 yorumu getir
+    const result = await commentsService.getCommentsWithAnnouncesOptimized(
+      null, // cursor
+      50,   // pageSize
+      undefined, // searchTerm
+      undefined  // cityFilter
+    );
+
+    return {
+      comments: result.data,
+      nextCursor: result.pagination.nextCursor,
+      hasMore: result.pagination.hasNextPage,
+      totalCount: 0, // Approximate count kullanılabilir, şimdilik 0
+    };
+  } catch (error) {
+    console.error('SSR: İlk yorumlar yüklenirken hata:', error);
+    
+    // Hata durumunda boş data dön (sayfa kırılmasın)
+    return {
+      comments: [],
+      nextCursor: null,
+      hasMore: false,
+      totalCount: 0,
+    };
+  }
+}
+
+/**
+ * Metadata için dynamic configuration
+ * SSR ile her istekte yeni data çekilsin
+ */
+export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Her istekte yeniden oluştur
