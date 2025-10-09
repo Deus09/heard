@@ -227,11 +227,15 @@ export default function AddReviewPage() {
               id="businessName"
               name="businessName"
               required
+              maxLength={100}
               value={formData.businessName}
               onChange={handleChange}
               placeholder="Örn: Starbucks, McDonald's..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              {formData.businessName.length}/100 karakter
+            </p>
           </div>
 
           {/* Şehir */}
@@ -393,6 +397,7 @@ export default function AddReviewPage() {
               id="experience"
               name="experience"
               required
+              maxLength={500}
               value={formData.experience}
               onChange={handleChange}
               rows={6}
@@ -400,7 +405,7 @@ export default function AddReviewPage() {
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none"
             />
             <p className="mt-2 text-xs text-gray-500">
-              Lütfen deneyiminizi detaylı ve yapıcı bir şekilde paylaşın.
+              {formData.experience.length}/500 karakter - Lütfen deneyiminizi detaylı ve yapıcı bir şekilde paylaşın.
             </p>
           </div>
 

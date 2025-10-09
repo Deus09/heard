@@ -74,6 +74,26 @@ export const commentsService = {
     rating: number,
     anonymous: boolean = false
   ) {
+    // Validasyon kontrolleri
+    if (!businessName || businessName.trim().length === 0) {
+      throw new Error('İş yeri adı boş olamaz')
+    }
+    if (businessName.length > 100) {
+      throw new Error('İş yeri adı en fazla 100 karakter olabilir')
+    }
+    if (!experience || experience.trim().length === 0) {
+      throw new Error('Deneyim açıklaması boş olamaz')
+    }
+    if (experience.length > 500) {
+      throw new Error('Deneyim açıklaması en fazla 500 karakter olabilir')
+    }
+    if (experience.trim().length < 20) {
+      throw new Error('Deneyim açıklaması en az 20 karakter olmalıdır')
+    }
+    if (rating < 1 || rating > 5) {
+      throw new Error('Puan 1 ile 5 arasında olmalıdır')
+    }
+    
     const user = await supabase.auth.getUser()
     
     let userId: string | null = null
