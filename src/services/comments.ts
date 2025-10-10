@@ -464,11 +464,9 @@ export const commentsService = {
     cursor: PaginationCursor | null = null,
     pageSize: number = 50,
     searchTerm?: string,
-    cityFilter?: string
+    cityFilter?: string,
+    userId: string | null = null
   ): Promise<CursorPaginatedCommentsWithAnnouncesResponse> {
-    // Server-side'da user bilgisi almıyoruz (cookie yok)
-    const userId = null
-
     try {
       // Server-side Supabase client oluştur
       const serverSupabase = createServerClient()

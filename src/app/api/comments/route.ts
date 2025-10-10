@@ -460,17 +460,137 @@ export async function GET(request: Request) {
     const search = searchParams.get('search') || undefined;
     const city = searchParams.get('city') || undefined;
 
-    // Yorumları getir (Optimize edilmiş RPC fonksiyonu ile)
-    const result = await commentsService.getCommentsWithAnnouncesOptimized(
-      cursor,
-      pageSize,
-      search,
-      city
-    );
+    // Kullanıcı ID'sini cookie'den al (server-side)
+    const cookieStore = await cookies()
+    const accessToken = cookieStore.get('sb-access-token')?.value
+    
+    let userId: string | null = null
+    
+    if (accessToken) {
+      try {
+        const serverSupabase = await createServerClientWithAuth()
+        const { data: userData } = await serverSupabase.auth.getUser()
+        userId = userData?.user?.id || null
+      } catch (error) {
+        console.warn('Kullanıcı bilgisi alınamadı:', error)
+        // Hata olsa bile devam et
+      }
+    }
+
+    // Yorumları getir (Server-side client ile direkt veritabanı sorgusu)
+    const serverSupabase = createServerClient()
+    
+    // Base query oluştur
+    let query = serverSupabase
+      .from('comments')
+      .select('*')
+
+    // Cursor-based filtering
+    if (cursor) {
+      query = query.or(
+        `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`
+      )
+    }
+
+    // Şehir filtresi
+    if (city && city.trim()) {
+      query = query.eq('city', city.trim())
+    }
+
+    // Arama filtresi
+    if (search && search.trim()) {
+      const term = `%${search.trim()}%`
+      query = query.or(`business_name.ilike.${term},city.ilike.${term},district.ilike.${term}`)
+    }
+
+    // Sıralama ve limit
+    query = query
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(pageSize + 1) // +1 ile hasNextPage kontrolü
+
+    const { data: comments, error: commentsError } = await query
+
+    if (commentsError) throw commentsError
+    
+    if (!comments || comments.length === 0) {
+      const result = {
+        data: [],
+        pagination: {
+          nextCursor: null,
+          prevCursor: null,
+          hasNextPage: false,
+          hasPrevPage: !!cursor,
+        }
+      }
+      
+      return NextResponse.json(result, { 
+        headers: {
+          'X-RateLimit-Limit': RateLimitPresets.general.maxRequests.toString(),
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': rateLimit.resetTime.toISOString(),
+          'X-Has-Next-Page': 'false',
+          'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30',
+        }
+      });
+    }
+
+    // HasNextPage kontrolü
+    const hasNextPage = comments.length > pageSize
+    const dataToReturn = hasNextPage ? comments.slice(0, pageSize) : comments
+    
+    // Next cursor oluştur
+    const nextCursor = hasNextPage
+      ? {
+          created_at: dataToReturn[dataToReturn.length - 1].created_at,
+          id: dataToReturn[dataToReturn.length - 1].id,
+        }
+      : null
+
+    // Announces bilgilerini paralel olarak getir
+    const commentIds = dataToReturn.map((c: any) => c.id)
+    const { data: announces } = await serverSupabase
+      .from('announces')
+      .select('comment_id, user_identifier')
+      .in('comment_id', commentIds)
+
+    // Duyuruları comment_id'ye göre grupla
+    const announcesByCommentId = (announces || []).reduce((acc: any, announce: any) => {
+      if (!acc[announce.comment_id]) {
+        acc[announce.comment_id] = []
+      }
+      acc[announce.comment_id].push(announce)
+      return acc
+    }, {} as Record<string, any[]>)
+
+    // Veriyi birleştir
+    const transformedData = dataToReturn.map((comment: any) => {
+      const commentAnnounces = announcesByCommentId[comment.id] || []
+      const announceCount = commentAnnounces.length
+      const hasAnnounced = userId 
+        ? commentAnnounces.some((a: any) => a.user_identifier === userId) 
+        : false
+
+      return {
+        ...comment,
+        announceCount,
+        hasAnnounced
+      }
+    })
+
+    const result = {
+      data: transformedData,
+      pagination: {
+        nextCursor,
+        prevCursor: cursor,
+        hasNextPage,
+        hasPrevPage: !!cursor,
+      }
+    };
 
     // Next cursor'ı base64 encode et
-    const nextCursorEncoded = result.pagination.nextCursor
-      ? Buffer.from(JSON.stringify(result.pagination.nextCursor)).toString('base64')
+    const nextCursorEncoded = nextCursor
+      ? Buffer.from(JSON.stringify(nextCursor)).toString('base64')
       : null;
 
     // Response headers
@@ -478,7 +598,7 @@ export async function GET(request: Request) {
       'X-RateLimit-Limit': RateLimitPresets.general.maxRequests.toString(),
       'X-RateLimit-Remaining': rateLimit.remaining.toString(),
       'X-RateLimit-Reset': rateLimit.resetTime.toISOString(),
-      'X-Has-Next-Page': result.pagination.hasNextPage.toString(),
+      'X-Has-Next-Page': hasNextPage.toString(),
       'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=30', // 10 saniye cache
     };
 
