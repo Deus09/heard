@@ -102,10 +102,10 @@ export default function AuthPage() {
       if (isLogin) {
         // Giriş yap
         await authService.signIn(formData.email, formData.password);
-        showToast("Giriş başarılı! Yönlendiriliyorsunuz...", "success");
+        showToast("Giriş başarılı! Ana sayfaya yönlendiriliyorsunuz...", "success");
         setTimeout(() => {
           router.push("/");
-        }, 1000);
+        }, 1500);
       } else {
         // Kayıt ol
         if (!formData.username.trim()) {
@@ -116,16 +116,13 @@ export default function AuthPage() {
         
         await authService.signUp(formData.email, formData.password, formData.username);
         
-        // Başarılı kayıt mesajı göster
-        showToast("Kayıt başarılı! Lütfen email adresinizi kontrol edin ve hesabınızı doğrulayın.", "success");
+        // Başarılı kayıt mesajı göster ve ana sayfaya yönlendir
+        showToast("Kayıt işlemi başarılı! Ana sayfaya yönlendiriliyorsunuz...", "success");
         
-        // Formu temizle ve giriş ekranına geç
-        setFormData({ email: "", password: "", username: "" });
-        
-        // 2 saniye sonra giriş ekranına geç
+        // 1.5 saniye sonra ana sayfaya yönlendir
         setTimeout(() => {
-          setIsLogin(true);
-        }, 2000);
+          router.push("/");
+        }, 1500);
       }
     } catch (err) {
       console.error("Auth error:", err);
@@ -336,7 +333,7 @@ export default function AuthPage() {
         <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-xs text-gray-600 text-center">
             Hesabınız sadece yorumlarınızı görüntülemek için kullanılır. 
-            E-posta doğrulaması gerektirmez.
+            E-posta doğrulaması gerekmez, hemen kullanmaya başlayabilirsiniz.
           </p>
         </div>
       </main>

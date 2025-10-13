@@ -38,18 +38,25 @@ export const authService = {
       throw new Error('Bu kullanıcı adı zaten kullanılıyor')
     }
 
-    // Kullanıcıyı kaydet
+    // Kullanıcıyı kaydet (e-posta doğrulaması olmadan otomatik giriş yap)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           username,
-        }
+        },
+        emailRedirectTo: undefined // E-posta doğrulaması yok
       }
     })
     
-    if (error) throw error
+    if (error) {
+      // E-posta zaten kayıtlı hatası için Türkçe mesaj
+      if (error.message.includes('User already registered')) {
+        throw new Error('Bu e-posta adresi daha önce alınmış')
+      }
+      throw error
+    }
     return data
   },
 
@@ -60,7 +67,13 @@ export const authService = {
       password,
     })
     
-    if (error) throw error
+    if (error) {
+      // Yanlış e-posta veya şifre hatası için Türkçe mesaj
+      if (error.message.includes('Invalid login credentials')) {
+        throw new Error('E-posta adresi veya şifre hatalı')
+      }
+      throw error
+    }
     return data
   },
 
