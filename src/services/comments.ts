@@ -482,7 +482,7 @@ export const commentsService = {
       })
 
       if (error) {
-        console.warn('SSR RPC fonksiyonu hatası:', error)
+        console.warn('SSR RPC fonksiyonu hatası, fallback kullanılıyor:', error)
         // RPC çalışmazsa fallback olarak manuel sorgu yap
         return this.getCommentsCursorPaginatedSSR(cursor, pageSize, searchTerm, cityFilter)
       }

@@ -120,13 +120,31 @@ export default function ReviewsContainer({
       return () => clearInterval(interval);
     }, [categories.length]);
   
+    // İlk yükleme için useEffect
+    useEffect(() => {
+      // Eğer initialData varsa ve boş değilse kullan, yoksa API'den yükle
+      if (initialData && initialData.comments.length > 0) {
+        // SSR verilerini kullan
+        setComments(initialData.comments);
+        setNextCursor(initialData.nextCursor);
+        setHasMore(initialData.hasMore);
+
+        // En yeni yorumun zamanını kaydet
+        if (initialData.comments.length > 0) {
+          setLatestCommentTime(initialData.comments[0].created_at);
+        }
+
+        // SSR verilerinin duyuru sayılarını kontrol etmek için API'den güncel verileri al
+        // Kısa süre sonra değil, hemen kontrol et
+        refreshAnnounceData();
+      } else {
+        // initialData yoksa API'den yükle
+        loadComments(null, true);
+      }
+    }, []); // Sadece component mount olduğunda çalışır
+
     // searchTerm veya selectedCity değiştiğinde listeyi sıfırla ve ilk sayfayı yükle
     useEffect(() => {
-      // SSR'dan gelen initial data ile başlıyorsa ve ilk render ise atla
-      if (initialData && !searchTerm && !selectedCity) {
-        return;
-      }
-      
       // Arama veya filtre değiştiğinde yeniden yükle
       setComments([]);
       setNextCursor(null);
@@ -293,7 +311,7 @@ export default function ReviewsContainer({
       try {
         const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
         const cityParam = selectedCity ? `&city=${encodeURIComponent(selectedCity)}` : '';
-        
+
         const response = await fetch(
           `/api/comments?pageSize=${PAGE_SIZE}${searchParam}${cityParam}`,
           {
@@ -303,28 +321,19 @@ export default function ReviewsContainer({
             },
           }
         );
-        
+
         if (!response.ok) {
           throw new Error('Yorumlar yüklenirken hata oluştu');
         }
-        
-        const result: import('@/types').CursorPaginatedCommentsWithAnnouncesResponse = 
+
+        const result: import('@/types').CursorPaginatedCommentsWithAnnouncesResponse =
           await response.json();
-        
-        // Mevcut yorumları güncelle (sadece duyuru bilgileri)
-        setComments(prevComments => {
-          return prevComments.map(prevComment => {
-            const updatedComment = result.data.find(c => c.id === prevComment.id);
-            if (updatedComment) {
-              return {
-                ...prevComment,
-                announceCount: updatedComment.announceCount,
-                hasAnnounced: updatedComment.hasAnnounced
-              };
-            }
-            return prevComment;
-          });
-        });
+
+        // İlk sayfadaki yorumları güncelle
+        if (result.data.length > 0) {
+          setComments(result.data);
+          setLatestCommentTime(result.data[0].created_at);
+        }
       } catch (error) {
         console.error('Duyuru bilgileri güncellenirken hata:', error);
       }
