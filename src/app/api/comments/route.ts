@@ -143,8 +143,8 @@ async function addCommentHandler(
   if (!experience || experience.trim().length === 0) {
     throw new Error('Deneyim açıklaması boş olamaz')
   }
-  if (experience.length > 500) {
-    throw new Error('Deneyim açıklaması en fazla 500 karakter olabilir')
+  if (experience.length > 1000) {
+    throw new Error('Deneyim açıklaması en fazla 1000 karakter olabilir')
   }
   if (experience.trim().length < 20) {
     throw new Error('Deneyim açıklaması en az 20 karakter olmalıdır')
