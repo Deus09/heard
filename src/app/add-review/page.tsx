@@ -443,7 +443,7 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
               id="experience"
               name="experience"
               required
-              maxLength={500}
+              maxLength={1000}
               value={formData.experience}
               onChange={handleChange}
               rows={6}
@@ -451,7 +451,7 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent resize-none"
             />
             <p className="mt-2 text-xs text-gray-500">
-              {formData.experience.length}/500 karakter - Lütfen deneyiminizi detaylı ve yapıcı bir şekilde paylaşın.
+              {formData.experience.length}/1000 karakter - Lütfen deneyiminizi detaylı ve yapıcı bir şekilde paylaşın.
             </p>
           </div>
 
