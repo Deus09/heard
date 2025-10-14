@@ -483,8 +483,8 @@ export const commentsService = {
 
       if (error) {
         console.warn('SSR RPC fonksiyonu hatası:', error)
-        // RPC çalışmazsa fallback olarak normal metodu kullan (server-side modunda)
-        return this.getCommentsCursorPaginated(cursor, pageSize, searchTerm, cityFilter, true)
+        // RPC çalışmazsa fallback olarak manuel sorgu yap
+        return this.getCommentsCursorPaginatedSSR(cursor, pageSize, searchTerm, cityFilter)
       }
 
       if (!data || data.length === 0) {
@@ -523,7 +523,117 @@ export const commentsService = {
     } catch (error) {
       console.error('SSR optimize edilmiş sorgu hatası:', error)
       // Hata durumunda fallback (server-side modunda)
-      return this.getCommentsCursorPaginated(cursor, pageSize, searchTerm, cityFilter, true)
+      return this.getCommentsCursorPaginatedSSR(cursor, pageSize, searchTerm, cityFilter)
+    }
+  },
+
+  /**
+   * SSR için özel fallback fonksiyonu
+   * Server-side modunda duyuru verilerini doğru şekilde getirir
+   */
+  async getCommentsCursorPaginatedSSR(
+    cursor: PaginationCursor | null = null,
+    pageSize: number = 50,
+    searchTerm?: string,
+    cityFilter?: string
+  ): Promise<CursorPaginatedCommentsWithAnnouncesResponse> {
+    // Server-side Supabase client oluştur
+    const serverSupabase = createServerClient()
+
+    // Base query oluştur
+    let query = serverSupabase
+      .from('comments')
+      .select('*')
+
+    // Cursor-based filtering (created_at, id ile sıralama)
+    if (cursor) {
+      // (created_at, id) < (cursor.created_at, cursor.id) - PostgreSQL composite comparison
+      query = query.or(
+        `created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`
+      )
+    }
+
+    // Şehir filtresi
+    if (cityFilter && cityFilter.trim()) {
+      query = query.eq('city', cityFilter.trim())
+    }
+
+    // Arama filtresi
+    if (searchTerm && searchTerm.trim()) {
+      const term = `%${searchTerm.trim()}%`
+      query = query.or(`business_name.ilike.${term},city.ilike.${term},district.ilike.${term}`)
+    }
+
+    // Sıralama ve limit
+    query = query
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(pageSize + 1) // +1 ile hasNextPage kontrolü yapacağız
+
+    const { data: comments, error } = await query
+
+    if (error) throw error
+    if (!comments || comments.length === 0) {
+      return {
+        data: [],
+        pagination: {
+          nextCursor: null,
+          prevCursor: null,
+          hasNextPage: false,
+          hasPrevPage: !!cursor,
+        }
+      }
+    }
+
+    // HasNextPage kontrolü
+    const hasNextPage = comments.length > pageSize
+    const dataToReturn = hasNextPage ? comments.slice(0, pageSize) : comments
+    
+    // Next cursor oluştur
+    const nextCursor: PaginationCursor | null = hasNextPage
+      ? {
+          created_at: dataToReturn[dataToReturn.length - 1].created_at,
+          id: dataToReturn[dataToReturn.length - 1].id,
+        }
+      : null
+
+    // Announces bilgilerini paralel olarak getir
+    const commentIds = dataToReturn.map(c => c.id)
+    const { data: announces } = await serverSupabase
+      .from('announces')
+      .select('comment_id, user_identifier')
+      .in('comment_id', commentIds)
+
+    // Duyuruları comment_id'ye göre grupla
+    const announcesByCommentId = (announces || []).reduce((acc, announce) => {
+      if (!acc[announce.comment_id]) {
+        acc[announce.comment_id] = []
+      }
+      acc[announce.comment_id].push(announce)
+      return acc
+    }, {} as Record<string, any[]>)
+
+    // Veriyi birleştir (SSR'da kullanıcı bilgisi yok, sadece duyuru sayıları)
+    const transformedData: CommentWithAnnounces[] = dataToReturn.map(comment => {
+      const commentAnnounces = announcesByCommentId[comment.id] || []
+      const announceCount = commentAnnounces.length
+      const hasAnnounced = false // SSR'da kullanıcı bilgisi yok
+
+      return {
+        ...comment,
+        announceCount,
+        hasAnnounced
+      }
+    })
+
+    return {
+      data: transformedData,
+      pagination: {
+        nextCursor,
+        prevCursor: cursor,
+        hasNextPage,
+        hasPrevPage: !!cursor,
+      }
     }
   },
 

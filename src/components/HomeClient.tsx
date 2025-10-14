@@ -74,7 +74,8 @@ export default function HomeClient({ initialData }: HomeClientProps) {
   };
 
   const handleAnnounceChange = () => {
-    // Duyuru değişikliği olduğunda verileri yeniden yükle
+    // Duyuru değişikliği olduğunda duyuru bilgilerini güncelle
+    // refreshAnnounceData fonksiyonu ReviewsContainer içinde çağrılacak
     setLastRefreshTime(Date.now());
   };
 

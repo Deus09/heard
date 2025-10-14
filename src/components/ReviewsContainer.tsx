@@ -285,10 +285,62 @@ export default function ReviewsContainer({
       }
     };
     
-    // lastRefreshTime değiştiğinde yeni yorumları kontrol et
+    /**
+     * Mevcut yorumların duyuru bilgilerini güncelle
+     * Duyuru işlemi yapıldığında çağrılır
+     */
+    const refreshAnnounceData = async () => {
+      try {
+        const searchParam = searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : '';
+        const cityParam = selectedCity ? `&city=${encodeURIComponent(selectedCity)}` : '';
+        
+        const response = await fetch(
+          `/api/comments?pageSize=${PAGE_SIZE}${searchParam}${cityParam}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error('Yorumlar yüklenirken hata oluştu');
+        }
+        
+        const result: import('@/types').CursorPaginatedCommentsWithAnnouncesResponse = 
+          await response.json();
+        
+        // Mevcut yorumları güncelle (sadece duyuru bilgileri)
+        setComments(prevComments => {
+          return prevComments.map(prevComment => {
+            const updatedComment = result.data.find(c => c.id === prevComment.id);
+            if (updatedComment) {
+              return {
+                ...prevComment,
+                announceCount: updatedComment.announceCount,
+                hasAnnounced: updatedComment.hasAnnounced
+              };
+            }
+            return prevComment;
+          });
+        });
+      } catch (error) {
+        console.error('Duyuru bilgileri güncellenirken hata:', error);
+      }
+    };
+    
+    // lastRefreshTime değiştiğinde yeni yorumları kontrol et veya duyuru bilgilerini güncelle
     useEffect(() => {
       if (lastRefreshTime && lastRefreshTime > 0) {
-        checkForNewComments();
+        // Eğer onAnnounceChange callback'i varsa, bu duyuru değişikliği demektir
+        // Sadece duyuru bilgilerini güncelle
+        if (onAnnounceChange) {
+          refreshAnnounceData();
+        } else {
+          // Normal refresh ise yeni yorumları kontrol et
+          checkForNewComments();
+        }
       }
     }, [lastRefreshTime]);
   
