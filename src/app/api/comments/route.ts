@@ -186,22 +186,31 @@ async function addCommentHandler(
     username = await generateAnonymousUsername()
   }
 
+  const commentData = {
+    user_id: userId,
+    username,
+    business_name: businessName,
+    city,
+    district,
+    experience,
+    rating,
+    anonymous: !userData?.user ? true : anonymous
+  };
+
+  console.log('🔵 Inserting comment to Supabase:', commentData);
+
   const { data, error } = await serverSupabase
     .from('comments')
-    .insert({
-      user_id: userId,
-      username,
-      business_name: businessName,
-      city,
-      district,
-      experience,
-      rating,
-      anonymous: !userData?.user ? true : anonymous
-    })
+    .insert(commentData)
     .select()
     .single()
   
-  if (error) throw error
+  if (error) {
+    console.error('❌ Supabase insert error:', error);
+    throw error;
+  }
+
+  console.log('✅ Supabase insert successful:', data);
   return data as Comment
 }
 
@@ -343,6 +352,15 @@ export async function POST(request: Request) {
     }
 
     // 6. Yorumu ekle (doğrudan API route'ta)
+    console.log('🔵 Adding comment to database...', { 
+      businessName, 
+      city, 
+      district, 
+      rating, 
+      anonymous,
+      experienceLength: experience.length 
+    });
+    
     const comment = await addCommentHandler(
       businessName,
       city,
@@ -352,6 +370,13 @@ export async function POST(request: Request) {
       anonymous,
       request
     );
+
+    console.log('✅ Comment successfully added to database:', {
+      id: comment.id,
+      business_name: comment.business_name,
+      username: comment.username,
+      created_at: comment.created_at
+    });
 
     // 7. Başarılı yanıt
     return NextResponse.json(

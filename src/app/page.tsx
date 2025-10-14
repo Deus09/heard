@@ -52,3 +52,4 @@ async function loadInitialComments(): Promise<InitialCommentsData> {
  */
 export const dynamic = 'force-dynamic';
 export const revalidate = 0; // Her istekte yeniden oluştur
+export const fetchCache = 'force-no-store'; // Cache'i tamamen devre dışı bırak

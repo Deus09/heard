@@ -196,12 +196,25 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
         // Rate limit hatası
         if (response.status === 429) {
           showToast(data.message || 'Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin.', 'error');
+          setIsSubmitting(false);
           return;
         }
         
         // Diğer hatalar
-        throw new Error(data.error || 'Tecrübe eklenirken bir hata oluştu');
+        showToast(data.error || 'Tecrübe eklenirken bir hata oluştu', 'error');
+        setIsSubmitting(false);
+        return;
       }
+
+      // Başarılı yanıt kontrolü - mutlaka comment objesi dönmeli
+      if (!data.success || !data.comment) {
+        console.error('Beklenmeyen API yanıtı:', data);
+        showToast('Yorum eklenemedi. Lütfen tekrar deneyin.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('✅ Yorum başarıyla eklendi:', data.comment);
 
       // Formu temizle
       setFormData({
@@ -213,7 +226,7 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
       });
 
       // Başarı mesajı göster
-      showToast('Yorumunuz başarıyla eklendi', 'success');
+      showToast('Yorumunuz başarıyla eklendi ve veritabanına kaydedildi!', 'success');
       
       // Eğer kullanıcı giriş yapmamışsa (anonim yorum), Supabase session'ını temizle
       try {
@@ -241,7 +254,7 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
       // Ana sayfaya yönlendir (toast mesajını görmek için kısa bir gecikme)
       setTimeout(() => {
         window.location.href = '/';
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error('Tecrübe eklenirken hata:', error);
       const errorMessage = error instanceof Error ? error.message : 'Bir hata oluştu. Lütfen tekrar deneyin.';
