@@ -16,12 +16,14 @@ export default function Header() {
       // Supabase kullanıcısını kontrol et
       import("@/services/auth").then(({ authService }) => {
         authService.getCurrentUser().then(user => {
-          setIsLoggedIn(!!user);
+          // Kullanıcının email'i varsa gerçekten giriş yapmış demektir
+          setIsLoggedIn(!!(user && user.email));
         });
   
         // Auth state değişikliklerini dinle
         const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
-          setIsLoggedIn(!!session?.user);
+          // Sadece email olan gerçek kullanıcıları kabul et
+          setIsLoggedIn(!!(session?.user && session.user.email));
         });
   
         return () => subscription.unsubscribe();
@@ -32,6 +34,10 @@ export default function Header() {
       const { authService } = await import("@/services/auth");
       await authService.signOut();
       setIsLoggedIn(false);
+      // localStorage'ı da temizle (eski sistemden kalan olabilir)
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+      }
       window.location.href = "/";
     };
   

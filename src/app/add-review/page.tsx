@@ -215,6 +215,29 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
       // Başarı mesajı göster
       showToast('Yorumunuz başarıyla eklendi', 'success');
       
+      // Eğer kullanıcı giriş yapmamışsa (anonim yorum), Supabase session'ını temizle
+      try {
+        const { authService } = await import("@/services/auth");
+        const currentUser = await authService.getCurrentUser();
+        
+        // Eğer gerçekten giriş yapmış bir kullanıcı yoksa veya email yoksa, 
+        // localStorage'ı temizle (phantom session önleme)
+        if (!currentUser || !currentUser.email) {
+          // localStorage'daki Supabase auth verilerini temizle
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('heard-auth');
+            localStorage.removeItem('user');
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        // Hata durumunda da localStorage'ı temizle
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('heard-auth');
+          localStorage.removeItem('user');
+        }
+      }
+      
       // Ana sayfaya yönlendir (toast mesajını görmek için kısa bir gecikme)
       setTimeout(() => {
         window.location.href = '/';
