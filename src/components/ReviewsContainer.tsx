@@ -97,11 +97,13 @@ export default function ReviewsContainer({
     const PAGE_SIZE = 50; // Daha büyük sayfa boyutu ile daha az istek
     
     const categories = [
-      "Kafe Yorumları",
-      "Ofis Yorumları",
-      "Restoran Yorumları",
-      "Market Yorumları",
-      "Giyim Mağazası Yorumları"
+      "Kafe Tecrübeleri",
+      "Ofis Tecrübeleri",
+      "Restoran Tecrübeleri",
+      "Market Tecrübeleri",
+      "Mağaza Tecrübeleri",
+      "Fabrika Tecrübeleri",
+      "Memuriyet Tecrübeleri",
     ];
   
     useEffect(() => {
