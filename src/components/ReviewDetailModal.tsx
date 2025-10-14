@@ -193,7 +193,13 @@ export default function ReviewDetailModal({
                   <button 
                     onClick={handleAnnounceClick}
                     disabled={isProcessing}
-                    className={`transition-all duration-200 ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}
+                    className={`transition-all duration-200 rounded-full p-1.5 ${
+                      isProcessing 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : announced 
+                          ? 'hover:scale-110 hover:bg-red-50' 
+                          : 'hover:scale-110 hover:bg-gray-50'
+                    }`}
                     aria-label={announced ? "Duyuruyu geri al" : "Duyur"}
                   >
                     <Image 
@@ -201,11 +207,11 @@ export default function ReviewDetailModal({
                       alt="Duyur" 
                       width={32} 
                       height={32} 
-                      className={`transition-all duration-200 ${announced ? '' : 'grayscale'}`}
+                      className={`transition-all duration-200 ${announced ? 'brightness-110 drop-shadow-lg' : 'grayscale opacity-50'}`}
                     />
                   </button>
                   {count > 0 && (
-                    <span className={`text-sm mt-1 font-medium ${announced ? 'text-red-600' : 'text-gray-500'}`}>
+                    <span className={`text-sm mt-1 font-bold transition-colors duration-200 ${announced ? 'text-red-600' : 'text-gray-400'}`}>
                       {count}
                     </span>
                   )}
