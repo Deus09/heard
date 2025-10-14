@@ -154,7 +154,7 @@ function ReviewsListPage() {
       <Header />
       <main className="max-w-5xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Yorumlarım</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Tecrübelerim</h1>
           <p className="text-gray-500">
             Toplam {reviews.length} Tecrübe paylaştınız
           </p>
@@ -314,7 +314,7 @@ function Header() {
             Tecrübe Ekle
           </Link> 
           <Link aria-current="page" className="text-primary hover:text-primary transition-colors" href="/account/reviews">
-            Yorumlarım
+            Tecrübelerim
           </Link> 
         </nav>
         <div className="hidden md:block">
@@ -389,7 +389,7 @@ function Header() {
             className="block text-primary hover:text-primary transition-colors py-2"
             href="/account/reviews"
           >
-            Yorumlarım
+            Tecrübelerim
           </Link> 
         </div>
       )}

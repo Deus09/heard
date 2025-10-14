@@ -78,7 +78,7 @@ export default function Header() {
               Tecrübe Ekle
             </Link> 
             <Link className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
-              Yorumlarım
+              Tecrübelerim
             </Link> 
           </nav>
           <div className="hidden md:block">
@@ -159,7 +159,7 @@ export default function Header() {
                 className="text-foreground hover:text-primary transition-colors py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Yorumlarım
+                Tecrübelerim
               </Link>
             </nav>
           </div>

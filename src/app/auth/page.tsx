@@ -402,7 +402,7 @@ function Header() {
             Tecrübe Ekle
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
-            Yorumlarım
+            Tecrübelerim
           </Link> 
         </nav>
         <div className="hidden md:block">
