@@ -122,7 +122,7 @@ function validateBusinessName(businessName: string): { valid: boolean; error?: s
 }
 
 /**
- * Yorum ekleme handler fonksiyonu
+ * Tecrübe ekleme handler fonksiyonu
  */
 async function addCommentHandler(
   businessName: string,
@@ -206,9 +206,9 @@ async function addCommentHandler(
 }
 
 /**
- * Yorum ekleme endpoint'i
- * POST /api/comments - Yeni yorum oluşturur
- * Rate limit: Saatte 5 yorum
+ * Tecrübe ekleme endpoint'i
+ * POST /api/comments - Yeni Tecrübe oluşturur
+ * Rate limit: Saatte 5 Tecrübe
  * CSRF korumalı
  */
 export async function POST(request: Request) {
@@ -221,7 +221,7 @@ export async function POST(request: Request) {
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
-          error: 'Çok fazla yorum eklemeye çalıştınız',
+          error: 'Çok fazla Tecrübe eklemeye çalıştınız',
           message: `Lütfen ${Math.ceil(rateLimit.retryAfter! / 60)} dakika sonra tekrar deneyin`,
           retryAfter: rateLimit.retryAfter,
         },
@@ -370,10 +370,10 @@ export async function POST(request: Request) {
       }
     );
   } catch (error: any) {
-    console.error('Yorum ekleme hatası:', error);
+    console.error('Tecrübe ekleme hatası:', error);
     
     // Kullanıcı dostu hata mesajları
-    let errorMessage = 'Yorum eklenirken bir hata oluştu';
+    let errorMessage = 'Tecrübe eklenirken bir hata oluştu';
     let statusCode = 500;
 
     if (error.message) {
@@ -403,7 +403,7 @@ export async function POST(request: Request) {
  * 
  * Query Parameters:
  * - cursor: Base64 encoded pagination cursor (optional, ilk sayfa için null)
- * - pageSize: Sayfa başına yorum sayısı (default: 50, max: 100)
+ * - pageSize: Sayfa başına Tecrübe sayısı (default: 50, max: 100)
  * - search: Arama terimi (optional)
  * - city: Şehir filtresi (optional)
  * 

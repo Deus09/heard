@@ -15,7 +15,7 @@ export default async function Home() {
 
 /**
  * İlk yorumları yükler (Server-side)
- * @returns İlk 50 yorum ve pagination metadata
+ * @returns İlk 50 Tecrübe ve pagination metadata
  */
 async function loadInitialComments(): Promise<InitialCommentsData> {
   try {

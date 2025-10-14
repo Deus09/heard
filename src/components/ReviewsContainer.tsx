@@ -253,7 +253,7 @@ export default function ReviewsContainer({
           await response.json();
         
         if (result.data.length === 0) {
-          showToast("Henüz yeni yorum yok", "info");
+          showToast("Henüz yeni Tecrübe yok", "info");
           return;
         }
         
@@ -268,12 +268,12 @@ export default function ReviewsContainer({
             // Yeni yorumları listenin başına ekle
             setComments(prev => [...newComments, ...prev]);
             setLatestCommentTime(result.data[0].created_at);
-            showToast(`${newComments.length} yeni yorum yüklendi`, "success");
+            showToast(`${newComments.length} yeni Tecrübe yüklendi`, "success");
           } else {
-            showToast("Henüz yeni yorum yok", "info");
+            showToast("Henüz yeni Tecrübe yok", "info");
           }
         } else {
-          showToast("Henüz yeni yorum yok", "info");
+          showToast("Henüz yeni Tecrübe yok", "info");
         }
       } catch (error) {
         console.error('Yeni yorumlar kontrol edilirken hata:', error);
@@ -299,7 +299,7 @@ export default function ReviewsContainer({
                   {selectedCity} Yorumları
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  {comments.length} yorum bulundu
+                  {comments.length} Tecrübe bulundu
                 </p>
               </div>
               {onClearCitySelection && (
@@ -344,7 +344,7 @@ export default function ReviewsContainer({
                   Arama sonucu bulunamadı
                 </h3>
                 <p className="text-gray-500">
-                  Arama kriterlerine uygun yorum bulunamadı. Farklı bir arama terimi deneyin.
+                  Arama kriterlerine uygun Tecrübe bulunamadı. Farklı bir arama terimi deneyin.
                 </p>
               </div>
             ) : (
@@ -396,7 +396,7 @@ export default function ReviewsContainer({
                 <div className="text-center">
                   <div className="inline-flex items-center space-x-2 text-gray-400">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-600"></div>
-                    <span>Daha fazla yorum yükleniyor...</span>
+                    <span>Daha fazla Tecrübe yükleniyor...</span>
                   </div>
                 </div>
               )}

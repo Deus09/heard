@@ -19,7 +19,7 @@
 - ✅ Flex-box ile içerik alanları sabitlendi
 
 ### 2. ⚠️ N+1 Query Problemi
-**Sorun**: Her yorum için ayrı ayrı duyuru sayısı ve kullanıcı durumu sorgulanıyordu.
+**Sorun**: Her Tecrübe için ayrı ayrı duyuru sayısı ve kullanıcı durumu sorgulanıyordu.
 
 **Çözümler**:
 - ✅ `getCommentsPaginatedWithAnnounces` metodunu optimize ettik
@@ -31,7 +31,7 @@
 **Optimizasyonlar**:
 - ✅ Hero bölümündeki logoya `priority` attribute eklendi
 - ✅ Header logolarına `priority` eklendi
-- ✅ Yorum kartlarındaki ikona `loading="lazy"` eklendi
+- ✅ Tecrübe kartlarındaki ikona `loading="lazy"` eklendi
 
 ### 4. 🎨 CSS Performans İyileştirmeleri
 **Eklemeler** (`globals.css`):
@@ -60,7 +60,7 @@ body {
 ## 📦 Yeni Bileşenler
 
 ### ReviewCardSkeleton.tsx
-Ana sayfadaki yorum kartları için placeholder.
+Ana sayfadaki Tecrübe kartları için placeholder.
 - Minimum yükseklik: 280px
 - Tüm içerik alanları için placeholder
 - Smooth loading animasyonu
@@ -87,7 +87,7 @@ DuyDuy sayfasındaki küçük kartlar için placeholder.
 ### `/src/app/duyduy/page.tsx`
 - ✅ `ReviewCardSmallSkeleton` import ve kullanımı eklendi
 - ✅ ReviewCard'a `min-h-[280px]` ve `flex flex-col` eklendi
-- ✅ Yorum alanına `min-h-[72px]` ve `flex-grow` eklendi
+- ✅ Tecrübe alanına `min-h-[72px]` ve `flex-grow` eklendi
 - ✅ Image bileşenlerine `priority` ve `loading="lazy"` eklendi
 
 ### `/src/app/globals.css`
@@ -99,7 +99,7 @@ DuyDuy sayfasındaki küçük kartlar için placeholder.
 ## 🎁 Yan Faydalar
 
 1. **Veritabanı Yükü Azaldı**: 
-   - 12 yorum için: 25 sorgu → 1 sorgu
+   - 12 Tecrübe için: 25 sorgu → 1 sorgu
    - %96 azalma!
 
 2. **Daha Hızlı Sayfa Yükleme**:

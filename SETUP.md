@@ -59,17 +59,17 @@ Uygulama http://localhost:3000 adresinde çalışmaya başlayacaktır.
 
 - **Kullanıcı Kaydı**: Email ve şifre ile kayıt
 - **Giriş/Çıkış**: Güvenli authentication
-- **Anonim Yorum**: Giriş yapmadan yorum ekleme (otomatik username: anon2025X)
-- **Yorum Ekleme**: İş deneyimlerini paylaşma
+- **Anonim Tecrübe**: Giriş yapmadan Tecrübe ekleme (otomatik username: anon2025X)
+- **Tecrübe Ekleme**: İş deneyimlerini paylaşma
 - **Yorumları Görüntüleme**: Tüm yorumları listeleme
-- **Kullanıcı-Yorum İlişkisi**: Her yorum bir kullanıcıya ait (veya anonim)
+- **Kullanıcı-Tecrübe İlişkisi**: Her Tecrübe bir kullanıcıya ait (veya anonim)
 - **Profil Yönetimi**: Otomatik profil oluşturma
 - **Güvenlik**: Row Level Security (RLS) ile veri koruması
 
 ### 🔜 Gelecek Özellikler (2. Aşama)
 
 - Like/Dislike sistemi
-- Yorum yanıtlama
+- Tecrübe yanıtlama
 - Gerçek zamanlı güncellemeler
 - Gelişmiş arama ve filtreleme
 - Harita görünümü
@@ -131,8 +131,8 @@ Uygulama http://localhost:3000 adresinde çalışmaya başlayacaktır.
 **Comments Service** (`src/services/comments.ts`):
 - `getComments()` - Tüm yorumları al
 - `getUserComments(userId)` - Kullanıcının yorumlarını al
-- `addComment(...)` - Yorum ekle
-- `deleteComment(commentId)` - Yorum sil
+- `addComment(...)` - Tecrübe ekle
+- `deleteComment(commentId)` - Tecrübe sil
 
 ### Test Kullanıcısı Oluşturma
 
@@ -148,7 +148,7 @@ npm run dev
 
 ## 📝 Notlar
 
-- **Anonim Yorum**: Giriş yapmadan yorum eklenebilir (otomatik username: anon2025X formatında)
+- **Anonim Tecrübe**: Giriş yapmadan Tecrübe eklenebilir (otomatik username: anon2025X formatında)
 - Email doğrulama zorunlu değil (geliştirme için)
 - Aynı email ile tekrar kayıt olunamaz
 - Kullanıcı adları benzersiz olmalıdır

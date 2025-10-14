@@ -78,7 +78,7 @@ export default function ReviewCard({ company, address, rating, review, date, use
         await commentsService.announceComment(commentId);
         setAnnounced(true);
         setCount(prev => prev + 1);
-        showToast('📢 Yorum duyuruldu!', 'success');
+        showToast('📢 Tecrübe duyuruldu!', 'success');
       }
     } catch (error) {
       console.error('Duyuru işlemi hatası:', error);

@@ -171,7 +171,7 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
         }
       }
 
-      // API üzerinden yorum gönder
+      // API üzerinden Tecrübe gönder
       const response = await fetch('/api/comments', {
         method: 'POST',
         headers: {
@@ -200,7 +200,7 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
         }
         
         // Diğer hatalar
-        throw new Error(data.error || 'Yorum eklenirken bir hata oluştu');
+        throw new Error(data.error || 'Tecrübe eklenirken bir hata oluştu');
       }
 
       // Formu temizle
@@ -220,7 +220,7 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
         window.location.href = '/';
       }, 1500);
     } catch (error) {
-      console.error('Yorum eklenirken hata:', error);
+      console.error('Tecrübe eklenirken hata:', error);
       const errorMessage = error instanceof Error ? error.message : 'Bir hata oluştu. Lütfen tekrar deneyin.';
       showToast(errorMessage, 'error');
     } finally {
@@ -258,7 +258,7 @@ const { executeRecaptcha } = useRecaptcha();  const [formData, setFormData] = us
       <Header />
       <main className="max-w-3xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Yeni Yorum Ekle</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Yeni Tecrübe Ekle</h1>
           <p className="text-gray-500">İş deneyiminizi anonim olarak paylaşın</p>
         </div>
 
@@ -526,7 +526,7 @@ function Header() {
             DuydunMu?
           </Link> 
           <Link aria-current="page" className="text-red-600 hover:text-red-600 transition-colors font-semibold" href="/add-review">
-            Yorum Ekle
+            Tecrübe Ekle
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
             Yorumlarım

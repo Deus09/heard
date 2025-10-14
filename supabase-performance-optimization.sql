@@ -227,7 +227,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger: Yeni yorum eklendiğinde materialized view'i yenile (asenkron)
+-- Trigger: Yeni Tecrübe eklendiğinde materialized view'i yenile (asenkron)
 -- Not: Production'da bu işi bir background job yapmalı (pg_cron veya external scheduler)
 CREATE OR REPLACE FUNCTION trigger_refresh_city_stats()
 RETURNS trigger AS $$

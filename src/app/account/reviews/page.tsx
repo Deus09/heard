@@ -115,7 +115,7 @@ function ReviewsListPage() {
         await commentsService.deleteComment(id);
         setReviews(reviews.filter(review => review.id !== id));
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Yorum silinirken hata oluştu';
+        const errorMessage = error instanceof Error ? error.message : 'Tecrübe silinirken hata oluştu';
         alert(errorMessage);
       }
     }
@@ -156,7 +156,7 @@ function ReviewsListPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Yorumlarım</h1>
           <p className="text-gray-500">
-            Toplam {reviews.length} yorum paylaştınız
+            Toplam {reviews.length} Tecrübe paylaştınız
           </p>
         </div>
 
@@ -168,14 +168,14 @@ function ReviewsListPage() {
               </div>
             </div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              Henüz Yorum Yapmadınız
+              Henüz Tecrübe Yapmadınız
             </h2>
             <p className="text-gray-500 mb-6">
               İlk yorumunuzu ekleyerek deneyimlerinizi paylaşmaya başlayın.
             </p>
             <Link href="/add-review">
               <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg shadow-red-500/50 transition-all">
-                Yorum Ekle
+                Tecrübe Ekle
               </button>
             </Link>
           </div>
@@ -238,7 +238,7 @@ function ReviewsListPage() {
           <div className="mt-8 text-center">
             <Link href="/add-review">
               <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-lg shadow-lg shadow-red-500/50 transition-all">
-                Yeni Yorum Ekle
+                Yeni Tecrübe Ekle
               </button>
             </Link>
           </div>
@@ -311,7 +311,7 @@ function Header() {
             DuydunMu?
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/add-review">
-            Yorum Ekle
+            Tecrübe Ekle
           </Link> 
           <Link aria-current="page" className="text-primary hover:text-primary transition-colors" href="/account/reviews">
             Yorumlarım
@@ -382,7 +382,7 @@ function Header() {
             className="block text-foreground hover:text-primary transition-colors py-2"
             href="/add-review"
           >
-            Yorum Ekle
+            Tecrübe Ekle
           </Link> 
           <Link
             aria-current="page"

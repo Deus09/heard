@@ -124,7 +124,7 @@ function Header() {
             DuydunMu?
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/add-review">
-            Yorum Ekle
+            Tecrübe Ekle
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
             Yorumlarım
@@ -398,7 +398,7 @@ function ReviewCard({
         {review.district}, {review.city}
       </p>
 
-      {/* Yorum */}
+      {/* Tecrübe */}
       <p className="text-gray-700 mb-4 line-clamp-3 flex-grow min-h-[72px]">
         {review.experience}
       </p>

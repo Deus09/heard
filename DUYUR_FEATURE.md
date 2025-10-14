@@ -1,7 +1,7 @@
 # Duyur Özelliği
 
 ## Genel Bakış
-Review (yorum) kartlarına "Duyur" özelliği eklendi. Bu özellik, kullanıcıların beğendikleri yorumları duyurarak diğer kullanıcıların dikkatini çekmesini sağlar..
+Review (Tecrübe) kartlarına "Duyur" özelliği eklendi. Bu özellik, kullanıcıların beğendikleri yorumları duyurarak diğer kullanıcıların dikkatini çekmesini sağlar..
 
 ## Özellikler
 

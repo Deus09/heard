@@ -61,7 +61,7 @@
 | Metrik | Öncesi | Sonrası | İyileştirme |
 |--------|--------|---------|-------------|
 | **İlk Yükleme** | 2.5s (loading) | 0.3s (SSR) | **8.3x daha hızlı** |
-| **Sayfa Boyutu** | 12 yorum | 50 yorum | **4x daha az istek** |
+| **Sayfa Boyutu** | 12 Tecrübe | 50 Tecrübe | **4x daha az istek** |
 | **Query Süresi (10K)** | 120ms | 5ms | **24x daha hızlı** |
 | **Query Süresi (100K)** | 1,500ms | 5ms | **300x daha hızlı** |
 | **Query Süresi (1M)** | 15,000ms | 5ms | **3,000x daha hızlı** |
@@ -187,12 +187,12 @@ Tüm yeni endpoint'ler korunuyor:
 ## 🎯 Kazanımlar
 
 ### 1. **Anında Yükleme (SSR)**
-- İlk 50 yorum server-side render edilir
+- İlk 50 Tecrübe server-side render edilir
 - Boş ekran süresi: ~0.3 saniye
 - SEO optimized
 
 ### 2. **Ölçeklenebilirlik**
-- 1 milyon yorum için bile sabit performans
+- 1 milyon Tecrübe için bile sabit performans
 - Cursor-based pagination
 - Database indeksleme
 

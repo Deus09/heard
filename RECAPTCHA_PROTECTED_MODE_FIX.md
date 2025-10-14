@@ -48,13 +48,13 @@ Kod zaten güncellendi:
 ## Test Etme
 1. ✅ Sunucu yeniden başlatıldı
 2. ✅ Supabase client hatası düzeltildi (`getUser` undefined sorunu)
-3. Yorum eklemeyi deneyin
+3. Tecrübe eklemeyi deneyin
 4. Loglarda şunları göreceksiniz:
    ```
    ⚠️ reCAPTCHA score is 0 - Google Protected mode is blocking traffic
    ⚠️ Meanwhile, accepting request since token is valid
    ✅ reCAPTCHA verified successfully
-   ✅ Yorum başarıyla eklendi
+   ✅ Tecrübe başarıyla eklendi
    ```
 
 ## Uzun Vadeli Çözüm
@@ -68,7 +68,7 @@ Kod zaten güncellendi:
 
 ## Önemli Notlar
 - ⚠️ **Threshold 0.0** geçici bir çözümdür
-- ⚠️ **Rate limiting** hala aktif (saatte 5 yorum)
+- ⚠️ **Rate limiting** hala aktif (saatte 5 Tecrübe)
 - ⚠️ **CSRF koruması** hala aktif
 - ✅ Bot koruması **tamamen kapatılmadı**, sadece score kontrolü esnetildi
 - ✅ Token doğrulaması **hala yapılıyor**

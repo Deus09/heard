@@ -23,7 +23,7 @@ export default function MapContainer({ onCityClick }: { onCityClick: (city: stri
           const counts = await commentsService.getCityReviewCounts();
           setCityReviewCounts(counts);
         } catch (error) {
-          console.error('İl bazlı yorum sayıları yüklenirken hata:', error);
+          console.error('İl bazlı Tecrübe sayıları yüklenirken hata:', error);
         } finally {
           setLoading(false);
         }

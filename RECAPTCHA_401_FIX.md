@@ -187,7 +187,7 @@ window.grecaptcha.execute(siteKey, { action })
    - Response: `{"success": true, "score": 0.9}` benzeri
 
 3. **Functional Test**:
-   - Yorum eklemeyi dene
+   - Tecrübe eklemeyi dene
    - Console'da token alındığını kontrol et
    - API response'un başarılı olduğunu kontrol et
 
@@ -270,7 +270,7 @@ export async function POST(request: Request) {
    - Browser'ı yeniden başlat
 
 4. **Test Et**
-   - Yorum eklemeyi dene
+   - Tecrübe eklemeyi dene
    - Network tab'da status 200 olmalı
 
 ## 📞 Hala Çalışmıyorsa

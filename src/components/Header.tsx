@@ -75,7 +75,7 @@ export default function Header() {
               DuydunMu?
             </Link> 
             <Link className="text-foreground hover:text-primary transition-colors" href="/add-review">
-              Yorum Ekle
+              Tecrübe Ekle
             </Link> 
             <Link className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
               Yorumlarım
@@ -152,7 +152,7 @@ export default function Header() {
                 className="text-foreground hover:text-primary transition-colors py-2"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Yorum Ekle
+                Tecrübe Ekle
               </Link>
               <Link 
                 href="/account/reviews" 

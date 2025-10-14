@@ -23,7 +23,7 @@ export default function ReviewCardSmallSkeleton() {
         <div className="h-4 bg-gray-200 rounded w-24"></div>
       </div>
 
-      {/* Yorum placeholder */}
+      {/* Tecrübe placeholder */}
       <div className="mb-4 space-y-2 min-h-[72px]">
         <div className="h-4 bg-gray-200 rounded w-full"></div>
         <div className="h-4 bg-gray-200 rounded w-full"></div>

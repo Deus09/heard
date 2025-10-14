@@ -93,7 +93,7 @@ const { data, error } = await supabase
 - ✅ Supabase client artık düzgün çalışıyor
 - ✅ `getUser()` fonksiyonu hata vermiyor
 - ✅ CSRF koruması hala aktif (kendi API'miz için)
-- ✅ Yorum ekleme çalışıyor
+- ✅ Tecrübe ekleme çalışıyor
 
 ## İlgili Dosyalar
 - `/src/lib/supabaseClient.ts` - Düzeltildi

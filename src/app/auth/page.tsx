@@ -399,7 +399,7 @@ function Header() {
             DuydunMu?
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/add-review">
-            Yorum Ekle
+            Tecrübe Ekle
           </Link> 
           <Link className="text-foreground hover:text-primary transition-colors" href="/account/reviews">
             Yorumlarım

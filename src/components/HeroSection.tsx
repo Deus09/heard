@@ -31,7 +31,7 @@ export default function HeroSection() {
         <Link href="/add-review">
           <button className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6  rounded-xl shadow-lg shadow-red-500/50 transition-all flex items-center space-x-2 mb-6">
             <Plus className="h-5 w-5" />
-            <span>Yorum Ekle</span>
+            <span>Tecrübe Ekle</span>
           </button>
         </Link>
       </div>

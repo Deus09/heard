@@ -30,7 +30,7 @@
 ## Adım 3: Doğrulama
 
 - Ana sayfada artık "Merhaba! İlk yorumu sen yapmak ister misin?" mesajını görmelisin
-- Hiçbir eski yorum görünmemeli
+- Hiçbir eski Tecrübe görünmemeli
 - İlk gerçek yorumu eklemek için "İlk Yorumu Yap" butonuna tıklayabilirsin
 
 ## Notlar

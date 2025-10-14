@@ -2,9 +2,9 @@
 
 ## Özet
 
-Bu güncelleme ile **Heard** platformu artık **yüz binlerce yorum** için optimize edilmiş durumda:
+Bu güncelleme ile **Heard** platformu artık **yüz binlerce Tecrübe** için optimize edilmiş durumda:
 
-- ✅ **Anında Yükleme (SSR)**: Sayfa açıldığında ilk 50 yorum anında görünür (0.1s altı)
+- ✅ **Anında Yükleme (SSR)**: Sayfa açıldığında ilk 50 Tecrübe anında görünür (0.1s altı)
 - ✅ **Ölçeklenebilir Pagination**: Cursor-based pagination ile sabit sorgu süresi
 - ✅ **Sorunsuz Infinite Scroll**: Kullanıcı deneyimini bozmadan sonsuz scroll
 - ✅ **Full-Text Search**: Türkçe dil desteği ile optimize edilmiş arama
@@ -80,7 +80,7 @@ LIMIT 50;  -- Sadece 50 satır okur (HIZLI!)
 
 **Performans Karşılaştırması:**
 
-| Yorum Sayısı | Offset (ms) | Cursor (ms) | İyileştirme |
+| Tecrübe Sayısı | Offset (ms) | Cursor (ms) | İyileştirme |
 |--------------|-------------|-------------|-------------|
 | 1,000        | 10          | 5           | 2x          |
 | 10,000       | 120         | 5           | 24x         |
@@ -194,7 +194,7 @@ LIMIT 50;
 ### 1. İlk Sayfa Yüklemesi (SSR)
 
 ```
-User Request → Next.js Server → Supabase RPC → 50 Yorum
+User Request → Next.js Server → Supabase RPC → 50 Tecrübe
                   ↓
               HTML + Data → Browser (0.3s)
                   ↓
@@ -213,7 +213,7 @@ API Call: /api/comments?cursor=xyz&pageSize=50
 Append to Existing List (Seamless)
 ```
 
-### 3. Yeni Yorum Kontrolü
+### 3. Yeni Tecrübe Kontrolü
 
 ```
 User Clicks Refresh Button
@@ -291,9 +291,9 @@ npm run test:perf
 
 ## 📈 Ölçeklenebilirlik
 
-Bu implementasyon **1 milyondan fazla yorum** için test edilmiştir:
+Bu implementasyon **1 milyondan fazla Tecrübe** için test edilmiştir:
 
-| Yorum Sayısı | Query Time | Memory Usage | User Experience |
+| Tecrübe Sayısı | Query Time | Memory Usage | User Experience |
 |--------------|------------|--------------|-----------------|
 | 1,000        | 2-5ms      | 45 MB        | ⭐⭐⭐⭐⭐ |
 | 10,000       | 2-5ms      | 45 MB        | ⭐⭐⭐⭐⭐ |

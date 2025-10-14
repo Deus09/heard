@@ -100,7 +100,7 @@ export default function ReviewDetailModal({
         await commentsService.announceComment(commentId);
         setAnnounced(true);
         setCount(prev => prev + 1);
-        if (showToast) showToast('📢 Yorum duyuruldu!', 'success');
+        if (showToast) showToast('📢 Tecrübe duyuruldu!', 'success');
       }
     } catch (error) {
       console.error('Duyuru işlemi hatası:', error);
@@ -204,10 +204,10 @@ export default function ReviewDetailModal({
           {/* Divider */}
           <div className="border-t border-gray-200 my-6" />
 
-          {/* Yorum Metni */}
+          {/* Tecrübe Metni */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              Yorum
+              Tecrübe
             </h3>
             <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
               {review}

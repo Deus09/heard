@@ -1,7 +1,7 @@
 # reCAPTCHA Sorunu Çözümü
 
 ## 🐛 Problem
-Production'da yorum eklenirken reCAPTCHA hatası alınıyordu:
+Production'da Tecrübe eklenirken reCAPTCHA hatası alınıyordu:
 ```
 CAPTCHA verification failed: Invalid action Score: 0
 ```
@@ -132,7 +132,7 @@ const token = await executeRecaptcha('submit_comment');
 
 ### Neden Action Undefined İzin Veriliyor?
 
-1. **Rate Limiting Aktif**: Saatte 5 yorum limiti var
+1. **Rate Limiting Aktif**: Saatte 5 Tecrübe limiti var
 2. **CSRF Token Kontrolü**: Token doğrulanıyor
 3. **IP Tracking**: Supabase'de kayıt tutuluyor
 4. **Profanity Filter**: Küfür kontrolü aktif

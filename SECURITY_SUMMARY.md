@@ -183,7 +183,7 @@ async headers() {
 4. **[USERNAME_VALIDATION.md](./USERNAME_VALIDATION.md)** - Kullanıcı adı validasyon kuralları
 
 ### Diğer Güvenlik Dokümanları
-- [ANONYMOUS_COMMENTS.md](./ANONYMOUS_COMMENTS.md) - Anonim yorum sistemi
+- [ANONYMOUS_COMMENTS.md](./ANONYMOUS_COMMENTS.md) - Anonim Tecrübe sistemi
 - [USERNAME_VALIDATION_TESTS.md](./USERNAME_VALIDATION_TESTS.md) - Username validasyon test senaryoları
 - [PERFORMANCE_OPTIMIZATION_V2.md](./PERFORMANCE_OPTIMIZATION_V2.md) - Performans ve güvenlik                              ---
 

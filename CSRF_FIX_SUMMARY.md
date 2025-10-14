@@ -1,7 +1,7 @@
 # CSRF Token Sorunu Çözümü
 
 ## 🐛 Problem
-Production ortamında yorum eklenirken `Invalid CSRF token` hatası alınıyordu.
+Production ortamında Tecrübe eklenirken `Invalid CSRF token` hatası alınıyordu.
 
 ## 🔍 Kök Neden Analizi
 
@@ -76,9 +76,9 @@ Tüm CSRF token işlemlerine detaylı loglar eklendi:
 ### Deploy Sonrası Test:
 
 1. **CSRF Token Testi**:
-   - Yorum ekleme sayfasına git
+   - Tecrübe ekleme sayfasına git
    - Browser console'u aç (F12)
-   - Yorum ekle
+   - Tecrübe ekle
    - Console'da logları kontrol et:
      - ✅ `🔵 Existing CSRF token found` veya `🟢 New CSRF token generated`
      - ✅ `✅ CSRF token validated successfully`
@@ -150,7 +150,7 @@ Bu düzeltmelerden sonra:
 - ✅ CSRF koruması tam olarak çalışıyor
 - ✅ Cookie'ler doğru gönderiliyor
 - ✅ Token doğrulama başarılı
-- ✅ Yorum ekleme çalışıyor
+- ✅ Tecrübe ekleme çalışıyor
 - ✅ Debug için detaylı loglar var
 
 ## 🔐 Güvenlik Notları
@@ -159,7 +159,7 @@ Bu düzeltmelerden sonra:
 2. **Secure Flag**: HTTPS üzerinden gönderim (production)
 3. **SameSite Strict**: CSRF saldırılarına karşı koruma
 4. **Token Expiry**: 24 saat sonra süresi doluyor
-5. **Rate Limiting**: Saatte 5 yorum limiti var
+5. **Rate Limiting**: Saatte 5 Tecrübe limiti var
 
 ## 📝 İlgili Dosyalar
 

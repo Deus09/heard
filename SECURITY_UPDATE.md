@@ -2,7 +2,7 @@
 
 ## Yapılan Değişiklikler
 
-Anonim yorum sistemine **çok katmanlı güvenlik** sistemi eklendi:
+Anonim Tecrübe sistemine **çok katmanlı güvenlik** sistemi eklendi:
 
 ### ✅ 1. Rate Limiting (Hız Sınırlama)
 - **IP bazlı** istek takibi
@@ -23,7 +23,7 @@ Anonim yorum sistemine **çok katmanlı güvenlik** sistemi eklendi:
 - `/src/lib/recaptcha.ts` - reCAPTCHA doğrulama
 
 ### API Routes
-- `/src/app/api/comments/route.ts` - Yorum ekleme API (rate limit + CAPTCHA)
+- `/src/app/api/comments/route.ts` - Tecrübe ekleme API (rate limit + CAPTCHA)
 - `/src/app/api/announces/route.ts` - Duyuru API (rate limit)
 
 ### Contexts
@@ -91,7 +91,7 @@ npm run dev
 
 | İşlem | Limit | Süre |
 |-------|-------|------|
-| 💬 Yorum Ekleme | 5 istek | Saat |
+| 💬 Tecrübe Ekleme | 5 istek | Saat |
 | 📢 Duyuru/Duyuru Kaldır | 20 istek | Dakika |
 | 👤 Kayıt Olma | 3 istek | Gün |
 | 🔐 Giriş Yapma | 10 istek | Saat |
@@ -105,10 +105,10 @@ npm run dev
 # 1. Dev server'ı başlatın
 npm run dev
 
-# 2. Yorum formunu açın
+# 2. Tecrübe formunu açın
 http://localhost:3000/add-review
 
-# 3. 5'ten fazla yorum ekleyin (saatte)
+# 3. 5'ten fazla Tecrübe ekleyin (saatte)
 # 6. istekte rate limit hatası almalısınız
 ```
 
@@ -123,7 +123,7 @@ for i in {1..6}; do
       "businessName": "Test Cafe",
       "city": "İstanbul",
       "district": "Kadıköy",
-      "experience": "Test için oluşturulmuş bir yorum. En az 20 karakter olmalı.",
+      "experience": "Test için oluşturulmuş bir Tecrübe. En az 20 karakter olmalı.",
       "rating": 5,
       "csrfToken": "test"
     }'
@@ -263,7 +263,7 @@ Güvenlik açığı bulursanız:
 - Detaylı dokümantasyon
 
 #### Changed
-- Yorum ekleme artık API üzerinden
+- Tecrübe ekleme artık API üzerinden
 - CSRF koruması artırıldı
 
 #### Security

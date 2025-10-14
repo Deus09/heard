@@ -85,7 +85,7 @@ export const commentsService = {
     return data as Comment[]
   },
 
-  // Yorum ekle (giriş yapmadan da eklenebilir)
+  // Tecrübe ekle (giriş yapmadan da eklenebilir)
   // NOT: Bu fonksiyon client-side için, server-side'da API route kullanın
   async addComment(
     businessName: string,
@@ -244,7 +244,7 @@ export const commentsService = {
   async getCommentsWithAnnounces(searchTerm?: string) {
     const comments = await this.getComments(searchTerm)
     
-    // Her yorum için duyuru sayısını al
+    // Her Tecrübe için duyuru sayısını al
     const commentsWithAnnounces = await Promise.all(
       comments.map(async (comment) => {
         const announceCount = await this.getAnnounceCount(comment.id)
@@ -327,7 +327,7 @@ export const commentsService = {
 
   // ====================================================================
   // CURSOR-BASED PAGINATION (Yeni ve Optimize Edilmiş)
-  // Yüz binlerce yorum için sabit performans
+  // Yüz binlerce Tecrübe için sabit performans
   // ====================================================================
 
   /**
@@ -335,7 +335,7 @@ export const commentsService = {
    * Offset-based pagination yerine cursor kullanarak ölçeklenebilirlik sağlar
    * 
    * @param cursor - Önceki sayfanın son yorumundan alınan cursor (ilk sayfa için null)
-   * @param pageSize - Sayfa başına yorum sayısı (varsayılan: 50)
+   * @param pageSize - Sayfa başına Tecrübe sayısı (varsayılan: 50)
    * @param searchTerm - Arama terimi (opsiyonel)
    * @param cityFilter - Şehir filtresi (opsiyonel)
    * @param isServerSide - Server-side mi çalışıyor (varsayılan: false)
@@ -457,7 +457,7 @@ export const commentsService = {
   },
 
   /**
-   * SSR için optimize edilmiş yorum getirme (SERVER-SIDE)
+   * SSR için optimize edilmiş Tecrübe getirme (SERVER-SIDE)
    * Server Component'lerden çağrılır
    */
   async getCommentsWithAnnouncesOptimizedSSR(
@@ -528,7 +528,7 @@ export const commentsService = {
   },
 
   /**
-   * CLIENT-SIDE için optimize edilmiş yorum getirme
+   * CLIENT-SIDE için optimize edilmiş Tecrübe getirme
    * Tek sorgu ile yorumları ve duyuru sayılarını getirir (N+1 problemi çözümü)
    * Not: Bu fonksiyon için supabase-performance-optimization.sql migration'ı çalıştırılmalı
    */
@@ -598,7 +598,7 @@ export const commentsService = {
     }
   },
 
-  // İl bazında yorum sayılarını al
+  // İl bazında Tecrübe sayılarını al
   async getCityReviewCounts() {
     const { data, error } = await supabase
       .from('comments')

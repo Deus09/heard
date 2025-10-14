@@ -138,7 +138,7 @@ export class RateLimiter {
  * Rate limit presets - Farklı endpoint'ler için farklı limitler
  */
 export const RateLimitPresets = {
-  // Yorum ekleme: Saatte 5 yorum
+  // Tecrübe ekleme: Saatte 5 Tecrübe
   addComment: {
     maxRequests: 5,
     windowMs: 60 * 60 * 1000, // 1 saat

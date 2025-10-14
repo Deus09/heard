@@ -3,7 +3,7 @@
 // ===========================
 
 /**
- * Yorum (Comment) veritabanı tipi
+ * Tecrübe (Comment) veritabanı tipi
  */
 export interface Comment {
   id: string;
@@ -69,7 +69,7 @@ export interface SupabaseSession {
 // ===========================
 
 /**
- * Duyuru sayısı ve kullanıcının duyuru durumunu içeren yorum tipi
+ * Duyuru sayısı ve kullanıcının duyuru durumunu içeren Tecrübe tipi
  */
 export interface CommentWithAnnounces extends Comment {
   announceCount: number;
@@ -77,7 +77,7 @@ export interface CommentWithAnnounces extends Comment {
 }
 
 /**
- * Sayfalı yorum yanıtı (Offset-based - Legacy)
+ * Sayfalı Tecrübe yanıtı (Offset-based - Legacy)
  */
 export interface PaginatedCommentsResponse {
   data: Comment[];
@@ -86,7 +86,7 @@ export interface PaginatedCommentsResponse {
 }
 
 /**
- * Duyurulu sayfalı yorum yanıtı (Offset-based - Legacy)
+ * Duyurulu sayfalı Tecrübe yanıtı (Offset-based - Legacy)
  */
 export interface PaginatedCommentsWithAnnouncesResponse {
   data: CommentWithAnnounces[];
@@ -115,7 +115,7 @@ export interface CursorPaginationMeta {
 }
 
 /**
- * Cursor-based sayfalı yorum yanıtı
+ * Cursor-based sayfalı Tecrübe yanıtı
  */
 export interface CursorPaginatedCommentsResponse {
   data: Comment[];
@@ -123,7 +123,7 @@ export interface CursorPaginatedCommentsResponse {
 }
 
 /**
- * Duyurulu cursor-based sayfalı yorum yanıtı
+ * Duyurulu cursor-based sayfalı Tecrübe yanıtı
  */
 export interface CursorPaginatedCommentsWithAnnouncesResponse {
   data: CommentWithAnnounces[];
@@ -145,7 +145,7 @@ export interface InitialCommentsData {
 // ===========================
 
 /**
- * Yorum ekleme formu verisi
+ * Tecrübe ekleme formu verisi
  */
 export interface AddReviewFormData {
   businessName: string;

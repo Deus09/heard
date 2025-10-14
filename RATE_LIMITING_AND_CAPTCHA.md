@@ -1,10 +1,10 @@
 # Rate Limiting ve CAPTCHA Güvenlik Entegrasyonu
 
-Bu dokümantasyon, anonim yorum sistemine eklenen rate limiting ve CAPTCHA güvenlik özelliklerini açıklamaktadır.
+Bu dokümantasyon, anonim Tecrübe sistemine eklenen rate limiting ve CAPTCHA güvenlik özelliklerini açıklamaktadır.
 
 ## 📋 Genel Bakış
 
-Anonim yorum sisteminde spam ve otomatik saldırılara karşı iki katmanlı güvenlik sistemi uygulanmıştır:
+Anonim Tecrübe sisteminde spam ve otomatik saldırılara karşı iki katmanlı güvenlik sistemi uygulanmıştır:
 
 1. **Rate Limiting (Hız Sınırlama)** - IP bazlı istek sınırlama
 2. **reCAPTCHA v3** - Google'ın görünmez bot koruma sistemi
@@ -22,7 +22,7 @@ Anonim yorum sisteminde spam ve otomatik saldırılara karşı iki katmanlı gü
 
 | Endpoint | Limit | Zaman Aralığı |
 |----------|-------|---------------|
-| Yorum Ekleme | 5 istek | Saat başına |
+| Tecrübe Ekleme | 5 istek | Saat başına |
 | Duyuru/Duyuru Kaldır | 20 istek | Dakika başına |
 | Kayıt Olma | 3 istek | Günlük |
 | Giriş Yapma | 10 istek | Saat başına |
@@ -204,7 +204,7 @@ export const RecaptchaActions = {
 
 ### POST /api/comments
 
-Yeni yorum oluşturur.
+Yeni Tecrübe oluşturur.
 
 **Rate Limit**: 5 istek/saat  
 **CAPTCHA**: Gerekli (production)
@@ -235,7 +235,7 @@ Yeni yorum oluşturur.
 **Response (Rate Limited)**:
 ```json
 {
-  "error": "Çok fazla yorum eklemeye çalıştınız",
+  "error": "Çok fazla Tecrübe eklemeye çalıştınız",
   "message": "Lütfen 60 dakika sonra tekrar deneyin",
   "retryAfter": 3600
 }

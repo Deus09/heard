@@ -1,8 +1,8 @@
-# Anonim Yorum Sistemi - Kurulum Kılavuzu
+# Anonim Tecrübe Sistemi - Kurulum Kılavuzu
 
-## 🎯 Yeni Özellik: Giriş Yapmadan Yorum Yazma
+## 🎯 Yeni Özellik: Giriş Yapmadan Tecrübe Yazma
 
-Kullanıcılar artık giriş yapmadan anonim olarak yorum yazabilirler!
+Kullanıcılar artık giriş yapmadan anonim olarak Tecrübe yazabilirler!
 
 ## 🔧 Yapılması Gerekenler
 
@@ -17,7 +17,7 @@ ALTER TABLE comments ALTER COLUMN user_id DROP NOT NULL;
 -- Eski politikayı sil
 DROP POLICY IF EXISTS "Authenticated users can insert comments" ON comments;
 
--- Yeni politika (herkes yorum ekleyebilir)
+-- Yeni politika (herkes Tecrübe ekleyebilir)
 CREATE POLICY "Anyone can insert comments"
   ON comments FOR INSERT
   WITH CHECK ( true );
@@ -52,22 +52,22 @@ Format: anon[YIL][SAYI]
 ### Örnek Timeline:
 ```
 2025 yılında:
-- 1. anonim yorum: anon20251
-- 2. anonim yorum: anon20252
-- 3. anonim yorum: anon20253
+- 1. anonim Tecrübe: anon20251
+- 2. anonim Tecrübe: anon20252
+- 3. anonim Tecrübe: anon20253
 ...
-- 100. anonim yorum: anon2025100
+- 100. anonim Tecrübe: anon2025100
 
 2026 yılında:
-- 1. anonim yorum: anon20261
-- 2. anonim yorum: anon20262
+- 1. anonim Tecrübe: anon20261
+- 2. anonim Tecrübe: anon20262
 ```
 
 ## 🔐 Güvenlik
 
 ### RLS Politikaları:
-- ✅ Herkes yorum okuyabilir
-- ✅ Herkes yorum yazabilir (anonim dahil)
+- ✅ Herkes Tecrübe okuyabilir
+- ✅ Herkes Tecrübe yazabilir (anonim dahil)
 - ✅ Sadece giriş yapan kullanıcılar kendi yorumlarını silebilir
 - ✅ Anonim yorumlar silinemez (user_id null olduğu için)
 
@@ -78,7 +78,7 @@ Format: anon[YIL][SAYI]
 
 ## 🧪 Test Senaryoları
 
-### 1. Giriş Yapmadan Yorum Ekle:
+### 1. Giriş Yapmadan Tecrübe Ekle:
 ```bash
 1. http://localhost:3000/add-review sayfasına git
 2. Form doldur (giriş yapma!)
@@ -86,7 +86,7 @@ Format: anon[YIL][SAYI]
 4. ✅ Başarılı: "anon2025X" username ile kayıt oldu
 ```
 
-### 2. Giriş Yaparak Yorum Ekle:
+### 2. Giriş Yaparak Tecrübe Ekle:
 ```bash
 1. /auth sayfasından giriş yap
 2. /add-review sayfasına git
@@ -109,7 +109,7 @@ SELECT id, username, business_name, created_at
 FROM comments 
 WHERE user_id IS NULL;
 
--- 2025 yılı anonim yorum sayısı
+-- 2025 yılı anonim Tecrübe sayısı
 SELECT COUNT(*) 
 FROM comments 
 WHERE username LIKE 'anon2025%';
@@ -125,7 +125,7 @@ LIMIT 1;
 ## 🎉 Sonuç
 
 Artık kullanıcılar:
-- ✅ Giriş yapmadan yorum yazabilir
+- ✅ Giriş yapmadan Tecrübe yazabilir
 - ✅ Otomatik benzersiz username alır
 - ✅ Tamamen anonim kalır
 - ✅ Email vermek zorunda değil

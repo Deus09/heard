@@ -177,24 +177,24 @@ const TurkeyMap = ({ reviewCounts, onCityClick }: TurkeyMapProps) => {
       {/* Harita Başlığı ve Açıklama */}
       <div className="mb-8 md:mb-10">
         <h3 className="text-2xl md:text-4xl font-bold text-gray-900 mb-5">
-          İl Bazında Yorum Dağılımı
+          İl Bazında Tecrübe Dağılımı
         </h3>
         <div className="flex flex-wrap items-center gap-5 md:gap-8 text-base md:text-lg text-gray-700">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-amber-400 shadow-md"></div>
-            <span className="font-semibold">1-4 yorum</span>
+            <span className="font-semibold">1-4 Tecrübe</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-amber-500 shadow-md"></div>
-            <span className="font-semibold">5-19 yorum</span>
+            <span className="font-semibold">5-19 Tecrübe</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-orange-600 shadow-md"></div>
-            <span className="font-semibold">20-49 yorum</span>
+            <span className="font-semibold">20-49 Tecrübe</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-red-600 shadow-md"></div>
-            <span className="font-semibold">50+ yorum</span>
+            <span className="font-semibold">50+ Tecrübe</span>
           </div>
         </div>
       </div>
@@ -280,7 +280,7 @@ const TurkeyMap = ({ reviewCounts, onCityClick }: TurkeyMapProps) => {
                       fill="white"
                     />
                   </g>
-                  {/* İl adı ve yorum sayısı tooltip - sadece hover'da göster */}
+                  {/* İl adı ve Tecrübe sayısı tooltip - sadece hover'da göster */}
                   {isHovered && (
                     <g className="pointer-events-none">
                       {/* Arka plan beyaz kutu */}
@@ -318,7 +318,7 @@ const TurkeyMap = ({ reviewCounts, onCityClick }: TurkeyMapProps) => {
                           fontWeight: "600",
                         }}
                       >
-                        {item.count} yorum
+                        {item.count} Tecrübe
                       </text>
                     </g>
                   )}

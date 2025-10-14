@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     // 4. Validasyon
     if (!commentId) {
       return NextResponse.json(
-        { error: 'Yorum ID gereklidir' },
+        { error: 'Tecrübe ID gereklidir' },
         { status: 400 }
       );
     }
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
       {
         success: true,
         announceCount,
-        message: 'Yorum duyuruldu',
+        message: 'Tecrübe duyuruldu',
       },
       {
         status: 200,
@@ -140,7 +140,7 @@ export async function DELETE(request: Request) {
     // 4. Validasyon
     if (!commentId) {
       return NextResponse.json(
-        { error: 'Yorum ID gereklidir' },
+        { error: 'Tecrübe ID gereklidir' },
         { status: 400 }
       );
     }
