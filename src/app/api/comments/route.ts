@@ -328,9 +328,9 @@ export async function POST(request: Request) {
     }
 
     // 5. Validasyon
-    if (!businessName || !city || !district || !experience) {
+    if (!businessName || !city || !experience) {
       return NextResponse.json(
-        { error: 'Tüm alanlar doldurulmalıdır' },
+        { error: 'İş yeri adı, şehir ve deneyim alanları doldurulmalıdır' },
         { status: 400 }
       );
     }
