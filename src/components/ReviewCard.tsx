@@ -16,9 +16,10 @@ interface ReviewCardProps {
   announceCount?: number;
   hasAnnounced?: boolean;
   showToast: (message: string, type?: "success" | "error" | "info" | "warning") => void;
+  onAnnounceChange?: () => void; // Duyuru değişikliği callback'i
 }
 
-export default function ReviewCard({ company, address, rating, review, date, username, commentId, announceCount = 0, hasAnnounced = false, showToast }: ReviewCardProps) {
+export default function ReviewCard({ company, address, rating, review, date, username, commentId, announceCount = 0, hasAnnounced = false, showToast, onAnnounceChange }: ReviewCardProps) {
   const [isTruncated, setIsTruncated] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [announced, setAnnounced] = useState(hasAnnounced);
@@ -80,6 +81,11 @@ export default function ReviewCard({ company, address, rating, review, date, use
         setCount(prev => prev + 1);
         showToast('📢 Tecrübe duyuruldu!', 'success');
       }
+      
+      // Parent component'e duyuru değişikliğini bildir
+      if (onAnnounceChange) {
+        onAnnounceChange();
+      }
     } catch (error) {
       console.error('Duyuru işlemi hatası:', error);
       
@@ -87,6 +93,12 @@ export default function ReviewCard({ company, address, rating, review, date, use
       const errorMessage = error instanceof Error ? error.message : '';
       if (errorMessage.includes('zaten duyurdunuz')) {
         showToast('⚠️ Bu yorumu zaten duyurdunuz', 'warning');
+        // State'i düzelt - kullanıcı zaten duyurmuş
+        setAnnounced(true);
+        // Parent component'e duyuru değişikliğini bildir
+        if (onAnnounceChange) {
+          onAnnounceChange();
+        }
       } else {
         showToast('❌ Bir hata oluştu. Lütfen tekrar deneyin', 'error');
       }
@@ -185,6 +197,7 @@ export default function ReviewCard({ company, address, rating, review, date, use
         announceCount={count}
         hasAnnounced={announced}
         showToast={showToast}
+        onAnnounceChange={onAnnounceChange}
       />
     </>
   );

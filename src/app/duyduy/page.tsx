@@ -284,6 +284,11 @@ function ReviewsContainer({
     }
   }, [showToast, timeFilter]);
 
+  const handleAnnounceChange = () => {
+    // Duyuru değişikliği olduğunda verileri yeniden yükle
+    loadComments();
+  };
+
   useEffect(() => {
     loadComments();
   }, [loadComments]);
@@ -338,6 +343,7 @@ function ReviewsContainer({
           announceCount={selectedReview.announceCount}
           hasAnnounced={selectedReview.hasAnnounced}
           showToast={showToast}
+          onAnnounceChange={handleAnnounceChange}
         />
       )}
     </>

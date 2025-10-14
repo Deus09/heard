@@ -67,6 +67,7 @@ interface ReviewsContainerProps {
   onRefresh?: () => void;
   lastRefreshTime?: number;
   initialData?: import('@/types').InitialCommentsData;
+  onAnnounceChange?: () => void; // Duyuru değişikliği callback'i
 }
 
 export default function ReviewsContainer({ 
@@ -76,7 +77,8 @@ export default function ReviewsContainer({
   onClearCitySelection, 
   onRefresh, 
   lastRefreshTime,
-  initialData 
+  initialData,
+  onAnnounceChange
 }: ReviewsContainerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -388,6 +390,7 @@ export default function ReviewsContainer({
                   announceCount={comment.announceCount || 0}
                   hasAnnounced={comment.hasAnnounced || false}
                   showToast={showToast}
+                  onAnnounceChange={onAnnounceChange}
                 />
               ))}
             </div>

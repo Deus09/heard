@@ -73,6 +73,11 @@ export default function HomeClient({ initialData }: HomeClientProps) {
     }, 30000);
   };
 
+  const handleAnnounceChange = () => {
+    // Duyuru değişikliği olduğunda verileri yeniden yükle
+    setLastRefreshTime(Date.now());
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
@@ -98,6 +103,7 @@ export default function HomeClient({ initialData }: HomeClientProps) {
               onRefresh={handleRefresh}
               lastRefreshTime={lastRefreshTime}
               initialData={initialData}
+              onAnnounceChange={handleAnnounceChange}
             />
           ) : (
             <MapContainer onCityClick={handleCityClick} />

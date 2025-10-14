@@ -18,6 +18,7 @@ interface ReviewDetailModalProps {
   announceCount?: number;
   hasAnnounced?: boolean;
   showToast?: (message: string, type?: "success" | "error" | "info" | "warning") => void;
+  onAnnounceChange?: () => void; // Duyuru değişikliği callback'i
 }
 
 export default function ReviewDetailModal({
@@ -33,6 +34,7 @@ export default function ReviewDetailModal({
   announceCount = 0,
   hasAnnounced = false,
   showToast,
+  onAnnounceChange,
 }: ReviewDetailModalProps) {
   const [announced, setAnnounced] = useState(hasAnnounced);
   const [count, setCount] = useState(announceCount);
@@ -102,6 +104,11 @@ export default function ReviewDetailModal({
         setCount(prev => prev + 1);
         if (showToast) showToast('📢 Tecrübe duyuruldu!', 'success');
       }
+      
+      // Parent component'e duyuru değişikliğini bildir
+      if (onAnnounceChange) {
+        onAnnounceChange();
+      }
     } catch (error) {
       console.error('Duyuru işlemi hatası:', error);
       
@@ -110,6 +117,12 @@ export default function ReviewDetailModal({
         const errorMessage = error instanceof Error ? error.message : '';
         if (errorMessage.includes('zaten duyurdunuz')) {
           showToast('⚠️ Bu yorumu zaten duyurdunuz', 'warning');
+          // State'i düzelt - kullanıcı zaten duyurmuş
+          setAnnounced(true);
+          // Parent component'e duyuru değişikliğini bildir
+          if (onAnnounceChange) {
+            onAnnounceChange();
+          }
         } else {
           showToast('❌ Bir hata oluştu. Lütfen tekrar deneyin', 'error');
         }
