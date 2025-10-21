@@ -1,18 +1,19 @@
 // Dosya Yolu: src/app/sitemap.ts
 
 import { MetadataRoute } from 'next';
-import { createClient } from '@/lib/supabase/server'; // Sunucu taraflı Supabase istemcisi
-import { cookies } from 'next/headers';
+// Hatalı import düzeltildi: createClient -> createServerSupabaseClient
+import { createServerSupabaseClient } from '@/lib/supabase/server'; 
+// cookies import'u kaldırıldı, artık gerekli değil.
 
 // Alan adınızı buraya girin
-const baseUrl = 'duyur.social'; // CNAME dosyanıza ve projenin adına göre varsayılmıştır.
+const baseUrl = 'duyur.social'; 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  // cookies() ve cookieStore kaldırıldı.
+  // Supabase istemcisi, dosyanızdaki fonksiyona göre 'await' ile çağrıldı.
+  const supabase = await createServerSupabaseClient();
 
   // 1. Statik Sayfalar
-  // Proje dosya yapınızdan çıkardığım statik sayfalar:
   const staticRoutes = [
     '/',
     '/auth',
@@ -29,20 +30,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // 2. Dinamik Sayfalar (Veritabanından)
-  // Henüz şehir veya işletme detay sayfalarınız (örn: /istanbul/işletme-adı)
-  // olmasa da, gelecekte 'comments' tablosundaki verilere göre
-  // dinamik sayfalar oluşturmak isteyebilirsiniz.
-  // Bu kod, örnek olarak 'comments' tablosundaki tüm benzersiz şehirleri çeker
-  // ve her biri için bir sitemap girişi oluşturur.
-  
   let dynamicUrls: MetadataRoute.Sitemap = [];
   
   try {
-    // Veritabanından benzersiz şehirleri çek (performans için optimize edilebilir)
     const { data: cities, error } = await supabase
       .from('comments')
       .select('city')
-      .distinct(); // Sadece benzersiz şehirleri al
+      .distinct(); 
 
     if (error) {
       console.error('Sitemap: Şehirler çekilirken hata oluştu', error);
@@ -50,7 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     if (cities) {
       dynamicUrls = cities.map((item) => ({
-        url: `${baseUrl}/?city=${encodeURIComponent(item.city)}`, // Ana sayfadaki filtreleme URL'si varsayılarak
+        url: `${baseUrl}/?city=${encodeURIComponent(item.city)}`, 
         lastModified: new Date().toISOString(),
         changeFrequency: 'weekly',
         priority: 0.6,
