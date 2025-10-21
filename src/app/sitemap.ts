@@ -1,11 +1,10 @@
 // Dosya Yolu: src/app/sitemap.ts
-// Lütfen bu dosyanın içeriğinin TAMAMEN bu koddan oluştuğundan emin olun.
+// Lütfen dosyanın içeriğinin SADECE bu koddan oluştuğundan emin olun.
 
 import { MetadataRoute } from 'next';
 import { createServerSupabaseClient } from '@/lib/supabase/server'; 
 
-// Alan adınız hata günlüklerinizde 'duyur.social' olarak görünüyordu.
-// Eğer 'duy-duy.com' ise lütfen bu satırı düzeltin.
+// CNAME ve önceki loglara göre alan adınız.
 const baseUrl = 'https://duyur.social'; 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -23,7 +22,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticUrls = staticRoutes.map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString(),
-    // Bir önceki ESLint hatası (as 'daily') burada düzeltilmiştir
     changeFrequency: 'daily', 
     priority: route === '/' ? 1.0 : 0.8,
   }));
@@ -32,23 +30,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let dynamicUrls: MetadataRoute.Sitemap = [];
   
   try {
-    const { data: cities, error } = await supabase
+    // --- DÜZELTME BAŞLANGICI ---
+    // .distinct() kaldırıldı, çünkü bu hataya neden oluyordu.
+    const { data: cityComments, error } = await supabase
       .from('comments')
-      .select('city')
-      .distinct(); 
+      .select('city'); 
 
     if (error) {
       console.error('Sitemap: Şehirler çekilirken hata oluştu', error);
     }
 
-    if (cities) {
-      dynamicUrls = cities.map((item) => ({
-        url: `${baseUrl}/?city=${encodeURIComponent(item.city)}`, 
+    if (cityComments) {
+      // Gelen tüm şehir listesini JavaScript kullanarak benzersiz hale getiriyoruz.
+      const uniqueCities = [...new Set(cityComments.map(item => item.city))];
+
+      // Artık benzersiz şehir listesiyle URL'leri oluşturabiliriz
+      dynamicUrls = uniqueCities.map((city) => ({
+        url: `${baseUrl}/?city=${encodeURIComponent(city)}`, 
         lastModified: new Date().toISOString(),
         changeFrequency: 'weekly',
         priority: 0.6,
       }));
     }
+    // --- DÜZELTME SONU ---
   } catch (e) {
     console.error('Sitemap: Dinamik URL hatası', e);
   }
